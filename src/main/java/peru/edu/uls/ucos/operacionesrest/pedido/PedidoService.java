@@ -5,8 +5,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
+import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedido;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.producto.Producto;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 
 import java.util.List;
 
@@ -16,16 +20,21 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final PedidoMapper pedidoMapper;
     private final ClienteRepository clienteRepository;
+    private final ProductoRepository productoRepository;
+    private final ProductoService productoService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          PedidoMapper pedidoMapper,
-                         ClienteRepository clienteRepository) {
+                         ClienteRepository clienteRepository,
+                         ProductoRepository productoRepository,
+                         ProductoService productoService) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoMapper = pedidoMapper;
         this.clienteRepository = clienteRepository;
+        this.productoRepository = productoRepository;
+        this.productoService = productoService;
     }
 
-    // 1. Consulta por ID
     @Transactional(readOnly = true)
     public PedidoResponse consultarPedidoPorId(Long id) {
         return pedidoRepository.findById(id)
@@ -33,21 +42,38 @@ public class PedidoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado con ID: " + id));
     }
 
-    // 2. Registro nuevo (validación de duplicados por 'numeroPedido' y existencia del cliente)
     @Transactional
     public PedidoResponse registrarProductoNuevo(PedidoRequest request) {
         if (pedidoRepository.existsByNumeroPedido(request.numeroPedido())) {
             throw new RecursoDuplicadoException("El pedido con número " + request.numeroPedido() + " ya existe.");
         }
         Cliente cliente = clienteRepository.findById(request.clienteId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Cliente no encontrado con ID: " + request.clienteId()));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.clienteId()));
+
         Pedido nuevoPedido = pedidoMapper.aEntidad(request, cliente);
+
+        double totalPedido = 0.0;
+
+        if (request.detalles() != null && !request.detalles().isEmpty()) {
+            for (var detReq : request.detalles()) {
+                Producto producto = productoRepository.findById(detReq.productoId())
+                        .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
+
+                //productoService.reducirStock(producto.getId(), detReq.cantidad());
+
+                DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), producto.getPrecio());
+                nuevoPedido.agregarDetalle(detalle);
+
+                totalPedido += detReq.cantidad() * producto.getPrecio();
+            }
+        }
+
+        nuevoPedido.setTotal(totalPedido);
         Pedido pedidoGuardado = pedidoRepository.save(nuevoPedido);
+
         return pedidoMapper.aRespuesta(pedidoGuardado);
     }
 
-    // 3. Consulta por estado
     @Transactional(readOnly = true)
     public List<PedidoResponse> consultarPorEstado(String estado) {
         return pedidoRepository.findByEstadoIgnoreCase(estado)
@@ -56,7 +82,6 @@ public class PedidoService {
                 .toList();
     }
 
-    // 4. Consulta por cliente (relación Cliente -> Pedido)
     @Transactional(readOnly = true)
     public List<PedidoResponse> consultarPorCliente(Long clienteId) {
         if (!clienteRepository.existsById(clienteId)) {
