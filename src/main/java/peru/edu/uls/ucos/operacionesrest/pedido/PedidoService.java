@@ -10,7 +10,6 @@ import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
-import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 
 import java.util.List;
 
@@ -21,18 +20,15 @@ public class PedidoService {
     private final PedidoMapper pedidoMapper;
     private final ClienteRepository clienteRepository;
     private final ProductoRepository productoRepository;
-    private final ProductoService productoService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          PedidoMapper pedidoMapper,
                          ClienteRepository clienteRepository,
-                         ProductoRepository productoRepository,
-                         ProductoService productoService) {
+                         ProductoRepository productoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoMapper = pedidoMapper;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
-        this.productoService = productoService;
     }
 
     @Transactional(readOnly = true)
@@ -61,10 +57,12 @@ public class PedidoService {
 
                 productoService.reducirStock(producto.getId(), detReq.cantidad());
 
-                DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), producto.getPrecio());
+                DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), precioUnitario);
                 nuevoPedido.agregarDetalle(detalle);
 
-                totalPedido += detReq.cantidad() * producto.getPrecio();
+                if (precioUnitario != null) {
+                    totalPedido += detReq.cantidad() * precioUnitario;
+                }
             }
         }
 
