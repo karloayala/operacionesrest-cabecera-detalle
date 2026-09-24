@@ -59,7 +59,7 @@ public class PedidoService {
                 Producto producto = productoRepository.findById(detReq.productoId())
                         .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
 
-                //productoService.reducirStock(producto.getId(), detReq.cantidad());
+                productoService.reducirStock(producto.getId(), detReq.cantidad());
 
                 DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), producto.getPrecio());
                 nuevoPedido.agregarDetalle(detalle);
