@@ -10,6 +10,7 @@ import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 
 import java.util.List;
 
@@ -20,15 +21,18 @@ public class PedidoService {
     private final PedidoMapper pedidoMapper;
     private final ClienteRepository clienteRepository;
     private final ProductoRepository productoRepository;
+    private final ProductoService productoService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          PedidoMapper pedidoMapper,
                          ClienteRepository clienteRepository,
-                         ProductoRepository productoRepository) {
+                         ProductoRepository productoRepository,
+                         ProductoService productoService) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoMapper = pedidoMapper;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
+        this.productoService = productoService;
     }
 
     @Transactional(readOnly = true)
@@ -55,14 +59,19 @@ public class PedidoService {
                 Producto producto = productoRepository.findById(detReq.productoId())
                         .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
 
+                Double precioUnitario = detReq.precioUnitario() != null
+                    ? detReq.precioUnitario()
+                    : producto.getPrecio();
+                if (precioUnitario == null || precioUnitario < 0) {
+                    throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
+                }
+
                 productoService.reducirStock(producto.getId(), detReq.cantidad());
 
                 DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), precioUnitario);
                 nuevoPedido.agregarDetalle(detalle);
 
-                if (precioUnitario != null) {
-                    totalPedido += detReq.cantidad() * precioUnitario;
-                }
+                totalPedido += detReq.cantidad() * precioUnitario;
             }
         }
 
