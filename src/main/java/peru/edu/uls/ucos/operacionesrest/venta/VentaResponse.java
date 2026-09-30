@@ -2,11 +2,12 @@ package peru.edu.uls.ucos.operacionesrest.venta;
 
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record VentaResponse(
     Long id,
-    String numeroVenta,
+    LocalDateTime fecha,
     Double total,
     String estado,
     Long clienteId,

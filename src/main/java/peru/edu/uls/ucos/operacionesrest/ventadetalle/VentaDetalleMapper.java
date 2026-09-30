@@ -24,7 +24,7 @@ public class VentaDetalleMapper {
         return new VentaDetalleResponse(
             detalle.getId(),
             venta == null ? null : venta.getId(),
-            venta == null ? null : venta.getNumeroVenta(),
+            venta == null ? null : venta.getFecha(),
             producto == null ? null : producto.getId(),
             producto == null ? null : producto.getNombre(),
             detalle.getCantidad(),

@@ -21,7 +21,6 @@ public class VentaMapper {
                 ? "PENDIENTE"
                 : request.estado();
         return new Venta(
-            request.numeroVenta(),
             0.0,
             estadoInicial,
             cliente
@@ -36,7 +35,7 @@ public class VentaMapper {
 
         return new VentaResponse(
             venta.getId(),
-            venta.getNumeroVenta(),
+            venta.getFecha(),
             venta.getTotal(),
             venta.getEstado(),
             cliente == null ? null : cliente.getId(),

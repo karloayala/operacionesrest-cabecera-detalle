@@ -17,8 +17,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     // cliente y venta mediante el ID del cliente.
     @Query(value = """
         SELECT c.* 
-        FROM cliente c 
-        INNER JOIN venta v ON c.id = v.cliente_id 
+        FROM clientes c 
+        INNER JOIN ventas v ON c.id = v.cliente_id 
         WHERE v.total > :montoMinimo
         """, nativeQuery = true)
     List<Cliente> obtenerClientesConVentasMayoresA(@Param("montoMinimo") Double montoMinimo);
@@ -30,9 +30,9 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     // qué clientes tienen pedidos que contienen el producto indicado.
     // DISTINCT evita devolver al mismo cliente más de una vez.
     @Query(value = """
-        SELECT DISTINCT c.* FROM cliente c 
-        INNER JOIN pedido p ON c.id = p.cliente_id 
-        INNER JOIN detalle_pedido dp ON p.id = dp.pedido_id
+        SELECT DISTINCT c.* FROM clientes c 
+        INNER JOIN pedidos p ON c.id = p.cliente_id 
+        INNER JOIN detalle_pedidos dp ON p.id = dp.pedido_id
         WHERE dp.producto_id = :idProducto
         """, nativeQuery = true)
     List<Cliente> obtenerClientesQueCompraronProducto(@Param("idProducto") Long idProducto);

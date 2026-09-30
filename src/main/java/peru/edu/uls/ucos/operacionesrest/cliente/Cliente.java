@@ -1,11 +1,13 @@
 package peru.edu.uls.ucos.operacionesrest.cliente;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
+import peru.edu.uls.ucos.operacionesrest.venta.Venta;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "clientes")
@@ -24,6 +26,14 @@ public class Cliente {
     @Column
     private String email;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pedido> pedidos = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Venta> ventas = new ArrayList<>();
+    
     public Cliente() {}
 
     public Cliente(String nombre, String documento, String email) {
@@ -32,6 +42,7 @@ public class Cliente {
         this.email = email;
     }
 
+
     public Long getId() { return id; }
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -39,4 +50,9 @@ public class Cliente {
     public void setDocumento(String documento) { this.documento = documento; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public List<Pedido> getPedidos() {return pedidos;}
+    public void setPedidos(List<Pedido> pedidos) {this.pedidos = pedidos;}
+    public List<Venta> getVentas() {return ventas;}
+    public void setVentas(List<Venta> ventas) {this.ventas = ventas;}
 }

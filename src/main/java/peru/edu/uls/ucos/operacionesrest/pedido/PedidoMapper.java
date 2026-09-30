@@ -22,7 +22,6 @@ public class PedidoMapper {
                 ? "PENDIENTE"
                 : request.estado();
         return new Pedido(
-            request.numeroPedido(),
             0.0,
             estadoInicial,
             cliente
@@ -37,7 +36,7 @@ public class PedidoMapper {
 
         return new PedidoResponse(
             pedido.getId(),
-            pedido.getNumeroPedido(),
+            pedido.getFecha(),
             pedido.getTotal(),
             pedido.getEstado(),
             cliente == null ? null : cliente.getId(),

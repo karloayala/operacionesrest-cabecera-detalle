@@ -1,0 +1,9 @@
+
+POST https://psychic-space-halibut-jj46wqg79g96hprx4-8080.app.github.dev/api/clientes
+Content-Type: application/json
+
+{
+    "nombre": "Juan",
+    "documento": "12345678",
+    "email": "juan.perez@email.com"
+}

@@ -24,7 +24,7 @@ public class DetallePedidoMapper {
         return new DetallePedidoResponse(
             detalle.getId(),
             pedido == null ? null : pedido.getId(),
-            pedido == null ? null : pedido.getNumeroPedido(),
+            pedido == null ? null : pedido.getFecha(),
             producto == null ? null : producto.getId(),
             producto == null ? null : producto.getNombre(),
             detalle.getCantidad(),

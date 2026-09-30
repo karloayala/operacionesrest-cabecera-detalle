@@ -12,6 +12,7 @@ import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -44,14 +45,11 @@ public class PedidoService {
 
     @Transactional
     public PedidoResponse registrarProductoNuevo(PedidoRequest request) {
-        if (pedidoRepository.existsByNumeroPedido(request.numeroPedido())) {
-            throw new RecursoDuplicadoException("El pedido con número " + request.numeroPedido() + " ya existe.");
-        }
         Cliente cliente = clienteRepository.findById(request.clienteId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.clienteId()));
 
         Pedido nuevoPedido = pedidoMapper.aEntidad(request, cliente);
-
+        nuevoPedido.setFecha(LocalDateTime.now());
         double totalPedido = 0.0;
 
         if (request.detalles() != null && !request.detalles().isEmpty()) {
