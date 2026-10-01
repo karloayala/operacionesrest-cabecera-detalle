@@ -16,10 +16,22 @@ public class PedidoController {
         this.pedidoService = pedidoService;
     }
 
+    // 1. GET /api/pedidos
+    @GetMapping
+    public ResponseEntity<List<PedidoResponse>> consultarTodos() {
+        return ResponseEntity.ok(pedidoService.consultarTodosConDetallesYProductos());
+    }
+
     // 1. GET /api/pedidos/{id}
     @GetMapping("/{id}")
     public ResponseEntity<PedidoResponse> consultarPedidoPorId(@PathVariable Long id) {
         return ResponseEntity.ok(pedidoService.consultarPedidoPorId(id));
+    }
+
+    // GET /api/pedidos/documento/{documento}
+    @GetMapping("/documento/{documento}")
+    public ResponseEntity<List<PedidoResponse>> consultarPorDocumentoCliente(@PathVariable String documento) {
+        return ResponseEntity.ok(pedidoService.consultarPorDocumentoCliente(documento));
     }
 
     // 2. POST /api/pedidos

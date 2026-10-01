@@ -38,9 +38,25 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public PedidoResponse consultarPedidoPorId(Long id) {
-        return pedidoRepository.findById(id)
+        return pedidoRepository.buscarCompletoPorId(id)
                 .map(pedidoMapper::aRespuesta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado con ID: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> consultarPorDocumentoCliente(String documento) {
+        return pedidoRepository.buscarPorDocumentoCliente(documento)
+                .stream()
+                .map(pedidoMapper::aRespuesta)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> consultarTodosConDetallesYProductos() {
+        return pedidoRepository.buscarTodosConDetallesYProductos()
+                .stream()
+                .map(pedidoMapper::aRespuesta)
+                .toList();
     }
 
     @Transactional
