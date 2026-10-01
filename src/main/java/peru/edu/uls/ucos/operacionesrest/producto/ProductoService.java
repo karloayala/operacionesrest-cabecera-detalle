@@ -1,10 +1,13 @@
 package peru.edu.uls.ucos.operacionesrest.producto;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.StockInsuficienteException;
@@ -14,10 +17,14 @@ public class ProductoService {
 
     private final ProductoRepository repository;
     private final ProductoMapper mapper;
+    private final ClienteRepository clienteRepository;
 
-    public ProductoService(ProductoRepository repository, ProductoMapper mapper) {
+    public ProductoService(ProductoRepository repository,
+                           ProductoMapper mapper,
+                           ClienteRepository clienteRepository) {
         this.repository = repository;
         this.mapper = mapper;
+        this.clienteRepository = clienteRepository;
     }
 
     public ProductoResponse registrarProductoNuevo(ProductoRequest request) {
@@ -43,11 +50,6 @@ public class ProductoService {
         return productos.stream().map(mapper::aRespuesta).toList();
     }
 
-    /**
-     * Reduce el stock del producto identificado por {@code productoId} en {@code cantidad} unidades.
-     * Lanza {@link StockInsuficienteException} si la cantidad solicitada excede el stock disponible.
-     * Devuelve la entidad Producto actualizada (con el stock ya reducido y persistido).
-     */
     @Transactional
     public Producto reducirStock(Long productoId, Integer cantidad) {
         if (cantidad == null || cantidad <= 0) {
@@ -64,5 +66,119 @@ public class ProductoService {
         }
         producto.setStock(stockActual - cantidad);
         return repository.save(producto);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosIncluidosEnPedidos() {
+        List<Producto> productos = repository.findProductosIncluidosEnPedidos();
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron productos incluidos en pedidos.");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosVendidos() {
+        List<Producto> productos = repository.findProductosVendidos();
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron productos que tengan ventas registradas.");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosVendidosConStockBajo(Integer stockMaximo) {
+        if (stockMaximo == null || stockMaximo < 0) {
+            throw new IllegalArgumentException(
+                    "El valor de stock máximo debe ser un número entero mayor o igual que cero.");
+        }
+        List<Producto> productos = repository.findProductosVendidosConStockBajo(stockMaximo);
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron productos vendidos con stock menor o igual a " + stockMaximo + ".");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosPedidosPorCliente(Long clienteId) {
+        validarIdPositivo(clienteId, "clienteId");
+        if (!clienteRepository.existsById(clienteId)) {
+            throw new RecursoNoEncontradoException(
+                    "Cliente no encontrado con ID: " + clienteId);
+        }
+        List<Producto> productos = repository.findProductosPedidosPorCliente(clienteId);
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "El cliente con ID " + clienteId + " no tiene productos asociados a pedidos.");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosVendidosEntreFechas(LocalDateTime fechaInicio,
+                                                                     LocalDateTime fechaFin) {
+        Objects.requireNonNull(fechaInicio, "La fecha de inicio no puede ser nula.");
+        Objects.requireNonNull(fechaFin, "La fecha de fin no puede ser nula.");
+        if (fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException(
+                    "La fecha de fin no puede ser anterior a la fecha de inicio.");
+        }
+        List<Producto> productos = repository.findProductosVendidosEntreFechas(fechaInicio, fechaFin);
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron productos vendidos entre "
+                            + fechaInicio + " y " + fechaFin + ".");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> listarProductosPedidosYVendidos() {
+        List<Producto> productos = repository.findProductosPedidosYVendidos();
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontraron productos incluidos simultáneamente en pedidos y ventas.");
+        }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoEstadisticaResponse> listarEstadisticasProductosVendidosACliente(Long clienteId) {
+        validarIdPositivo(clienteId, "clienteId");
+        if (!clienteRepository.existsById(clienteId)) {
+            throw new RecursoNoEncontradoException(
+                    "Cliente no encontrado con ID: " + clienteId);
+        }
+        List<ProductoEstadisticaProjection> filas =
+                repository.findEstadisticasProductosVendidosACliente(clienteId);
+        if (filas.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "El cliente con ID " + clienteId + " no tiene productos vendidos registrados.");
+        }
+        return filas.stream().map(mapper::aRespuestaEstadistica).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoEstadisticaResponse> listarTop5ProductosMasVendidos() {
+        List<ProductoEstadisticaProjection> filas = repository.findTop5ProductosMasVendidos();
+        if (filas.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se han registrado ventas todavía; no es posible calcular el Top 5.");
+        }
+        return filas.stream().map(mapper::aRespuestaEstadistica).toList();
+    }
+
+    private void validarIdPositivo(Long id, String nombreCampo) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "El campo '" + nombreCampo + "' no puede ser nulo.");
+        }
+        if (id <= 0) {
+            throw new IllegalArgumentException(
+                    "El campo '" + nombreCampo + "' debe ser un número positivo (> 0).");
+        }
     }
 }
