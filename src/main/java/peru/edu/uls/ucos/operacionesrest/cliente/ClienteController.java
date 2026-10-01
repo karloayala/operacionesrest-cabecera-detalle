@@ -1,5 +1,7 @@
 package peru.edu.uls.ucos.operacionesrest.cliente;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,4 +36,17 @@ public class ClienteController {
     public ResponseEntity<ClienteResponse> consultarPorDocumento(@PathVariable String documento) {
         return ResponseEntity.ok(service.consultarClientePorDocumento(documento));
     }
+
+    // Probar consulta nativa 1:
+    @GetMapping("/ventas-mayores/{monto}")
+    public ResponseEntity<?> obtenerClientesConVentasMayoresA(@PathVariable Double monto) {
+        return ResponseEntity.ok(service.obtenerClientesConVentasMayoresA(monto));
+    }
+
+    // Probar consulta nativa 2: 
+    @GetMapping("/compraron-producto/{idProducto}")
+    public ResponseEntity<?> obtenerClientesQueCompraronProducto(@PathVariable Long idProducto) {
+        return ResponseEntity.ok(service.obtenerClientesQueCompraronProducto(idProducto));
+    }
+
 }

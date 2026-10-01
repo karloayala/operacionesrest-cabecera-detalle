@@ -1,5 +1,10 @@
 package peru.edu.uls.ucos.operacionesrest.cliente;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
@@ -34,5 +39,36 @@ public class ClienteService {
         return repository.findByDocumento(documento)
                 .map(mapper::aRespuesta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con el documento: " + documento));
+    }
+
+    public List<Map<String, Object>> obtenerClientesConVentasMayoresA(Double monto) {
+        return repository.obtenerClientesConVentasMayoresA(monto)
+            .stream()
+            .map(columna -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("idCliente", columna[0]);
+                map.put("nombre", columna[1]);
+                map.put("documento", columna[2]);
+                map.put("idVenta", columna[3]);
+                map.put("totalVenta", columna[4]);
+                return map;
+            })
+            .collect(Collectors.toList());
+    }
+
+
+    public List<Map<String, Object>> obtenerClientesQueCompraronProducto(Long idProducto) {
+        return repository.obtenerClientesQueCompraronProducto(idProducto)
+            .stream()
+            .map(columna -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("idCliente", columna[0]);
+                map.put("nombreCliente", columna[1]);
+                map.put("documento", columna[2]);
+                map.put("idPedido", columna[3]);
+                map.put("nombreProducto", columna[4]);
+                return map;
+            })
+            .collect(Collectors.toList());
     }
 }
