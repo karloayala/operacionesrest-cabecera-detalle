@@ -65,6 +65,9 @@ public class Venta {
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
 
+    public Pedido getPedido() { return pedido; }
+    public void setPedido(Pedido pedido) { this.pedido = pedido; }
+
     public List<VentaDetalle> getDetalles() { return detalles; }
     public void setDetalles(List<VentaDetalle> detalles) { this.detalles = detalles; }
 }

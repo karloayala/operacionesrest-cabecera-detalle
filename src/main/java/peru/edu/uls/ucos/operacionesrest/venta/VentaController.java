@@ -26,6 +26,11 @@ public class VentaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.registrarVenta(request));
     }
 
+    @PostMapping("/pedido/{pedidoId}/confirmar")
+    public ResponseEntity<VentaResponse> confirmarPedido(@PathVariable Long pedidoId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.confirmarPedido(pedidoId));
+    }
+
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<VentaResponse>> consultarPorEstado(@PathVariable String estado) {
         return ResponseEntity.ok(ventaService.consultarPorEstado(estado));

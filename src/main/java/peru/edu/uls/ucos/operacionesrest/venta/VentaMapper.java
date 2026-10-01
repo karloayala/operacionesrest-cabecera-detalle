@@ -35,12 +35,14 @@ public class VentaMapper {
 
         return new VentaResponse(
             venta.getId(),
+            venta.getPedido() == null ? null : venta.getPedido().getId(),
             venta.getFecha(),
             venta.getTotal(),
             venta.getEstado(),
             cliente == null ? null : cliente.getId(),
             cliente == null ? null : cliente.getNombre(),
             cliente == null ? null : cliente.getDocumento(),
+            cliente == null ? null : cliente.getEmail(),
             detallesResp
         );
     }

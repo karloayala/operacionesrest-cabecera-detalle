@@ -6,6 +6,8 @@ import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
+import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
@@ -21,17 +23,20 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final VentaMapper ventaMapper;
     private final ClienteRepository clienteRepository;
+    private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
     private final ProductoService productoService;
 
     public VentaService(VentaRepository ventaRepository,
                        VentaMapper ventaMapper,
                        ClienteRepository clienteRepository,
+                       PedidoRepository pedidoRepository,
                        ProductoRepository productoRepository,
                        ProductoService productoService) {
         this.ventaRepository = ventaRepository;
         this.ventaMapper = ventaMapper;
         this.clienteRepository = clienteRepository;
+        this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.productoService = productoService;
     }
@@ -78,6 +83,37 @@ public class VentaService {
 
         nuevaVenta.setTotal(totalVenta);
         Venta ventaGuardada = ventaRepository.save(nuevaVenta);
+        return ventaMapper.aRespuesta(ventaGuardada);
+    }
+
+    @Transactional
+    public VentaResponse confirmarPedido(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado con ID: " + pedidoId));
+
+        if (pedido.getVenta() != null) {
+            throw new RecursoDuplicadoException("El pedido ya fue confirmado con una venta.");
+        }
+        if (pedido.getDetalles() == null || pedido.getDetalles().isEmpty()) {
+            throw new IllegalArgumentException("No se puede confirmar un pedido sin detalles.");
+        }
+
+        Venta venta = new Venta(pedido.getTotal(), "CONFIRMADA", pedido.getCliente());
+        venta.setFecha(LocalDateTime.now());
+        venta.setPedido(pedido);
+        pedido.setVenta(venta);
+        pedido.setEstado("CONFIRMADO");
+
+        for (var detallePedido : pedido.getDetalles()) {
+            VentaDetalle detalleVenta = new VentaDetalle(
+                    venta,
+                    detallePedido.getProducto(),
+                    detallePedido.getCantidad(),
+                    detallePedido.getPrecioUnitario());
+            venta.agregarDetalle(detalleVenta);
+        }
+
+        Venta ventaGuardada = ventaRepository.save(venta);
         return ventaMapper.aRespuesta(ventaGuardada);
     }
 
