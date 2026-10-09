@@ -4,5 +4,7 @@ public record ProductoRequest(
     String nombre,
     String marca,
     Double precio,
-    Integer stock
+    Integer stock,
+    Long categoriaId,
+    Long proveedorId
 ) {}

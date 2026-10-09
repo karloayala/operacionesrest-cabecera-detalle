@@ -8,6 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
+import peru.edu.uls.ucos.operacionesrest.categoria.Categoria;
+import peru.edu.uls.ucos.operacionesrest.categoria.CategoriaRepository;
+import peru.edu.uls.ucos.operacionesrest.proveedor.Proveedor;
+import peru.edu.uls.ucos.operacionesrest.proveedor.ProveedorRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.StockInsuficienteException;
@@ -18,20 +22,40 @@ public class ProductoService {
     private final ProductoRepository repository;
     private final ProductoMapper mapper;
     private final ClienteRepository clienteRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final ProveedorRepository proveedorRepository;
 
     public ProductoService(ProductoRepository repository,
                            ProductoMapper mapper,
-                           ClienteRepository clienteRepository) {
+                           ClienteRepository clienteRepository,
+                           CategoriaRepository categoriaRepository,
+                           ProveedorRepository proveedorRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.clienteRepository = clienteRepository;
+        this.categoriaRepository = categoriaRepository;
+        this.proveedorRepository = proveedorRepository;
     }
 
+    @Transactional
     public ProductoResponse registrarProductoNuevo(ProductoRequest request) {
         if (repository.existsByNombreIgnoreCase(request.nombre())) {
             throw new RecursoDuplicadoException("Ya existe un producto registrado con el nombre: " + request.nombre());
         }
-        Producto nuevoProducto = mapper.aEntidad(request);
+        
+        Categoria categoria = null;
+        if (request.categoriaId() != null) {
+            categoria = categoriaRepository.findById(request.categoriaId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Categoría no encontrada con ID: " + request.categoriaId()));
+        }
+        
+        Proveedor proveedor = null;
+        if (request.proveedorId() != null) {
+            proveedor = proveedorRepository.findById(request.proveedorId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + request.proveedorId()));
+        }
+
+        Producto nuevoProducto = mapper.aEntidad(request, categoria, proveedor);
         Producto productoGuardado = repository.save(nuevoProducto);
         return mapper.aRespuesta(productoGuardado);
     }
@@ -47,6 +71,16 @@ public class ProductoService {
         if (productos.isEmpty()) {
             throw new RecursoNoEncontradoException("No se encontraron productos de la marca: " + marca);
         }
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+    
+    public List<ProductoResponse> consultarProductosPorCategoria(Long categoriaId) {
+        List<Producto> productos = repository.findByCategoriaId(categoriaId);
+        return productos.stream().map(mapper::aRespuesta).toList();
+    }
+    
+    public List<ProductoResponse> consultarProductosPorProveedor(Long proveedorId) {
+        List<Producto> productos = repository.findByProveedorId(proveedorId);
         return productos.stream().map(mapper::aRespuesta).toList();
     }
 
