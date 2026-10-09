@@ -40,6 +40,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(CarritoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> manejarCarritoNoEncontrado(CarritoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CarritoDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarCarritoDuplicado(CarritoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DetalleCarritoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> manejarDetalleCarritoNoEncontrado(DetalleCarritoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DetalleCarritoDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarDetalleCarritoDuplicado(DetalleCarritoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(SinResultadosException.class)
     public ResponseEntity<Map<String, String>> manejarSinResultados(SinResultadosException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));

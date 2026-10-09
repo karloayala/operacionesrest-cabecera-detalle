@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.carrito.Carrito;
 import peru.edu.uls.ucos.operacionesrest.carrito.CarritoRepository;
+import peru.edu.uls.ucos.operacionesrest.excepciones.CarritoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.excepciones.DetalleCarritoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
@@ -39,7 +41,7 @@ public class DetalleCarritoService {
         }
 
         Carrito carrito = carritoRepository.findById(request.carritoId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
+                .orElseThrow(() -> new CarritoNoEncontradoException(
                         "Carrito no encontrado con ID: " + request.carritoId()));
 
         Producto producto = productoRepository.findById(request.productoId())
@@ -56,14 +58,14 @@ public class DetalleCarritoService {
     public DetalleCarritoResponse consultarPorId(Long id) {
         return detalleRepository.findById(id)
                 .map(detalleMapper::aRespuesta)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
+                .orElseThrow(() -> new DetalleCarritoNoEncontradoException(
                         "Detalle de carrito no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public List<DetalleCarritoResponse> listarPorCarrito(Long carritoId) {
         if (!carritoRepository.existsById(carritoId)) {
-            throw new RecursoNoEncontradoException("Carrito no encontrado con ID: " + carritoId);
+            throw new CarritoNoEncontradoException("Carrito no encontrado con ID: " + carritoId);
         }
         return detalleRepository.findByCarritoId(carritoId)
                 .stream()

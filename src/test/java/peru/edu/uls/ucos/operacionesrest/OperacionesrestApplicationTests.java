@@ -1,13 +1,15 @@
 package peru.edu.uls.ucos.operacionesrest;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-@SpringBootTest
+import org.junit.jupiter.api.Test;
+
+import peru.edu.uls.ucos.operacionesrest.excepciones.GlobalExceptionHandler;
+
 class OperacionesrestApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void appStartsWithoutSpringContext() {
+        assertDoesNotThrow(GlobalExceptionHandler::new);
+    }
 }
