@@ -9,7 +9,6 @@ public class CarritoMapper {
 
     public Carrito aEntidad(CarritoRequest request, Cliente cliente) {
         return new Carrito(
-            request.fechaCreacion(),
             request.estado(),
             cliente
         );

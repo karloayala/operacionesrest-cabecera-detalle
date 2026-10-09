@@ -1,9 +1,26 @@
 
-POST https://psychic-space-halibut-jj46wqg79g96hprx4-8080.app.github.dev/api/clientes
+### Registrar Dirección (POST)
+POST https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/direcciones 
 Content-Type: application/json
 
 {
-    "nombre": "Juan",
-    "documento": "12345678",
-    "email": "juan.perez@email.com"
+    "calle": "Av. Ejercito 123",
+    "ciudad": "Arequipa",
+    "codigoPostal": "04001",
+    "clienteId": 1
+};
+
+### Consultar Dirección por ID (GET)
+GET https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/direcciones/1
+
+### Registrar Carrito (POST)
+POST https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/carritos 
+Content-Type: application/json 
+
+{
+    "estado": "ACTIVO",
+    "clienteId": 1
 }
+
+### Consultar Carrito por ID (GET)
+GET https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/carritos/1
