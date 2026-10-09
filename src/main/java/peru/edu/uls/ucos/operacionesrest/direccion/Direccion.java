@@ -19,15 +19,15 @@ public class Direccion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
-    private Cliente clienteId;
+    private Cliente cliente;
 
     public Direccion() {}
 
-    public Direccion(String calle, String ciudad, String codigoPostal, Cliente clienteId) {
+    public Direccion(String calle, String ciudad, String codigoPostal, Cliente cliente) {
         this.calle = calle;
         this.ciudad = ciudad;
         this.codigoPostal = codigoPostal;
-        this.clienteId = clienteId;
+        this.cliente = cliente;
     }
 
     public Long getId() { return id; }
@@ -42,6 +42,6 @@ public class Direccion {
     public String getCodigoPostal() { return codigoPostal; }
     public void setCodigoPostal(String codigoPostal) { this.codigoPostal = codigoPostal; }
 
-    public Cliente getCliente() { return clienteId; }
-    public void setCliente(Cliente clienteId) { this.clienteId = clienteId; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
 }

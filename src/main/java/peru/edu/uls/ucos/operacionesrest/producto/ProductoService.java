@@ -25,11 +25,14 @@ public class ProductoService {
     private final CategoriaRepository categoriaRepository;
     private final ProveedorRepository proveedorRepository;
 
-    public ProductoService(ProductoRepository repository,
-                           ProductoMapper mapper,
-                           ClienteRepository clienteRepository,
-                           CategoriaRepository categoriaRepository,
-                           ProveedorRepository proveedorRepository) {
+    public ProductoService(
+        ProductoRepository repository,
+        ProductoMapper mapper,
+        ClienteRepository clienteRepository,
+        CategoriaRepository categoriaRepository,
+        ProveedorRepository proveedorRepository) 
+    {
+        
         this.repository = repository;
         this.mapper = mapper;
         this.clienteRepository = clienteRepository;

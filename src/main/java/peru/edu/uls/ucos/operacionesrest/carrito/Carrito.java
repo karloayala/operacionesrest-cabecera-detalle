@@ -20,14 +20,14 @@ public class Carrito {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
-    private Cliente clienteId;
+    private Cliente cliente;
 
     public Carrito() {}
 
-    public Carrito(LocalDateTime fechaCreacion, String estado, Cliente clienteId) {
-        this.fechaCreacion = fechaCreacion;
+    public Carrito(String estado, Cliente cliente) {
+        fechaCreacion = LocalDateTime.now();
         this.estado = estado;
-        this.clienteId = clienteId;
+        this.cliente = cliente;
     }
 
     public Long getId() { return id; }
@@ -39,6 +39,6 @@ public class Carrito {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public Cliente getCliente() { return clienteId; }
-    public void setCliente(Cliente clienteId) { this.clienteId = clienteId; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente clienteId) { this.cliente = cliente; }
 }
