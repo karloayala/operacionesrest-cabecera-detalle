@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository 
 public interface VentaDetalleRepository extends JpaRepository<VentaDetalle, Long> {
     List<VentaDetalle> findByVentaId(Long ventaId);
 }

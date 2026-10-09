@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.excepciones.SinResultadosException;
+
 
 @Service
 public class ClienteService {
@@ -42,7 +44,12 @@ public class ClienteService {
     }
 
     public List<Map<String, Object>> obtenerClientesConVentasMayoresA(Double monto) {
-        return repository.obtenerClientesConVentasMayoresA(monto)
+        List<Object[]> resultados = repository.obtenerClientesConVentasMayoresA(monto);
+        if (resultados.isEmpty()) {
+            throw new SinResultadosException("No se encontraron registros de clientes con ventas mayores a: " + monto);
+        }
+
+        return resultados
             .stream()
             .map(columna -> {
                 Map<String, Object> map = new HashMap<>();
@@ -58,7 +65,12 @@ public class ClienteService {
 
 
     public List<Map<String, Object>> obtenerClientesQueCompraronProducto(Long idProducto) {
-        return repository.obtenerClientesQueCompraronProducto(idProducto)
+        List<Object[]> resultados = repository.obtenerClientesQueCompraronProducto(idProducto);
+        if (resultados.isEmpty()) {
+            throw new SinResultadosException("No se encontraron clientes que hayan comprado el producto con ID: " + idProducto);
+        }
+
+        return resultados
             .stream()
             .map(columna -> {
                 Map<String, Object> map = new HashMap<>();
