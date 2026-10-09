@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import peru.edu.uls.ucos.operacionesrest.excepciones.DetallePedidoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
@@ -43,7 +45,7 @@ public class DetallePedidoService {
         }
 
         Pedido pedido = pedidoRepository.findById(request.pedidoId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
+                .orElseThrow(() -> new PedidoNoEncontradoException(
                         "Pedido no encontrado con ID: " + request.pedidoId()));
 
         Producto producto = productoRepository.findById(request.productoId())
@@ -67,14 +69,14 @@ public class DetallePedidoService {
     public DetallePedidoResponse consultarPorId(Long id) {
         return detalleRepository.findById(id)
                 .map(detalleMapper::aRespuesta)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
+                .orElseThrow(() -> new DetallePedidoNoEncontradoException(
                         "Detalle de pedido no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)
     public List<DetallePedidoResponse> listarPorPedido(Long pedidoId) {
         if (!pedidoRepository.existsById(pedidoId)) {
-            throw new RecursoNoEncontradoException("Pedido no encontrado con ID: " + pedidoId);
+            throw new PedidoNoEncontradoException("Pedido no encontrado con ID: " + pedidoId);
         }
         return detalleRepository.findByPedidoId(pedidoId)
                 .stream()

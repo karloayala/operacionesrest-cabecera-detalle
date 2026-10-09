@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedido;
+import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
@@ -40,7 +41,7 @@ public class PedidoService {
     public PedidoResponse consultarPedidoPorId(Long id) {
         return pedidoRepository.buscarCompletoPorId(id)
                 .map(pedidoMapper::aRespuesta)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado con ID: " + id));
+                .orElseThrow(() -> new PedidoNoEncontradoException("Pedido no encontrado con ID: " + id));
     }
 
     @Transactional(readOnly = true)

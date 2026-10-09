@@ -20,6 +20,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(PedidoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> manejarPedidoNoEncontrado(PedidoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PedidoDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarPedidoDuplicado(PedidoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DetallePedidoNoEncontradoException.class)
+    public ResponseEntity<Map<String, String>> manejarDetallePedidoNoEncontrado(DetallePedidoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DetallePedidoDuplicadoException.class)
+    public ResponseEntity<Map<String, String>> manejarDetallePedidoDuplicado(DetallePedidoDuplicadoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SinResultadosException.class)
+    public ResponseEntity<Map<String, String>> manejarSinResultados(SinResultadosException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<Map<String, String>> manejarStockInsuficiente(StockInsuficienteException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(Map.of("error", ex.getMessage()));
