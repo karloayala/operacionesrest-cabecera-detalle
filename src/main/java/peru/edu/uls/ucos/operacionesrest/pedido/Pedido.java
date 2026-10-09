@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+// Entidad que representa la cabecera de un pedido realizado por un cliente.
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
