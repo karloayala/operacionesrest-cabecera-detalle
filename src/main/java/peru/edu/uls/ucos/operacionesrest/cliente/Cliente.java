@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import peru.edu.uls.ucos.operacionesrest.carrito.Carrito;
+import peru.edu.uls.ucos.operacionesrest.direccion.Direccion;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
 import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 import jakarta.persistence.*;
@@ -34,6 +36,15 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Venta> ventas = new ArrayList<>();
     
+
+    // Relación 1 a Muchos con Dirección
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    private List<Direccion> direcciones = new ArrayList<>();
+
+    // Relación 1 a Muchos con Carrito
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    private List<Carrito> carritos = new ArrayList<>();
+
     public Cliente() {}
 
     public Cliente(String nombre, String documento, String email) {
@@ -55,4 +66,9 @@ public class Cliente {
     public void setPedidos(List<Pedido> pedidos) {this.pedidos = pedidos;}
     public List<Venta> getVentas() {return ventas;}
     public void setVentas(List<Venta> ventas) {this.ventas = ventas;}
+
+    public List<Direccion> getDirecciones() { return direcciones; }
+    public void setDirecciones(List<Direccion> direcciones) { this.direcciones = direcciones; }
+    public List<Carrito> getCarritos() { return carritos; }
+    public void setCarritos(List<Carrito> carritos) { this.carritos = carritos; }
 }
