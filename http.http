@@ -1,26 +1,9 @@
 
-### Registrar Dirección (POST)
-POST https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/direcciones 
-Content-Type: application/json
+### Consultar los detalles de un pedido (POST)
+GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/detalles/pedido/1
 
-{
-    "calle": "Av. Ejercito 123",
-    "ciudad": "Arequipa",
-    "codigoPostal": "04001",
-    "clienteId": 1
-};
+### CONSULTAR PEDIDO
+GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/pedidos/7
 
-### Consultar Dirección por ID (GET)
-GET https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/direcciones/1
-
-### Registrar Carrito (POST)
-POST https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/carritos 
-Content-Type: application/json 
-
-{
-    "estado": "ACTIVO",
-    "clienteId": 1
-}
-
-### Consultar Carrito por ID (GET)
-GET https://miniature-space-happiness-5g46px9r57gw24576-8080.app.github.dev/api/carritos/1
+### CONSULTAR VENTA
+GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/ventas/7

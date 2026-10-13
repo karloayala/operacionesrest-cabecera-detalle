@@ -60,33 +60,40 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponse registrarProductoNuevo(PedidoRequest request) {
+    public PedidoResponse crearPedido(PedidoRequest request) {
+
+        if (request.detalles() == null || request.detalles().isEmpty()) {
+             throw new IllegalArgumentException("El pedido debe contener al menos un producto.");
+        }
+
         Cliente cliente = clienteRepository.findById(request.clienteId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.clienteId()));
 
         Pedido nuevoPedido = pedidoMapper.aEntidad(request, cliente);
         nuevoPedido.setFecha(LocalDateTime.now());
+        nuevoPedido.setEstado(EstadoPedido.PENDIENTE);
         double totalPedido = 0.0;
-
-        if (request.detalles() != null && !request.detalles().isEmpty()) {
-            for (var detReq : request.detalles()) {
-                Producto producto = productoRepository.findById(detReq.productoId())
-                        .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
-
-                Double precioUnitario = detReq.precioUnitario() != null
-                    ? detReq.precioUnitario()
-                    : producto.getPrecio();
-                if (precioUnitario == null || precioUnitario < 0) {
-                    throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
-                }
-
-                productoService.reducirStock(producto.getId(), detReq.cantidad());
-
-                DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), precioUnitario);
-                nuevoPedido.agregarDetalle(detalle);
-
-                totalPedido += detReq.cantidad() * precioUnitario;
+        
+        for (var detReq : request.detalles()) {
+            if (detReq.cantidad() == null || detReq.cantidad() <= 0){
+                throw new IllegalArgumentException( "La cantidad debe ser mayor que cero." );
             }
+
+            Producto producto = productoRepository.findById(detReq.productoId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
+
+            Double precioUnitario = detReq.precioUnitario() != null
+                ? detReq.precioUnitario()
+                : producto.getPrecio();
+            if (precioUnitario == null || precioUnitario < 0) {
+                throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
+            }
+
+            productoService.reducirStock(producto.getId(), detReq.cantidad());
+
+            DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), precioUnitario);
+            nuevoPedido.agregarDetalle(detalle);
+            totalPedido += detReq.cantidad() * precioUnitario;
         }
 
         nuevoPedido.setTotal(totalPedido);

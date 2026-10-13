@@ -36,8 +36,8 @@ public class PedidoController {
 
     // 2. POST /api/pedidos
     @PostMapping
-    public ResponseEntity<PedidoResponse> registrarProductoNuevo(@RequestBody PedidoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.registrarProductoNuevo(request));
+    public ResponseEntity<PedidoResponse> crearPedido(@RequestBody PedidoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearPedido(request));
     }
 
     // 3. GET /api/pedidos/estado/{estado}

@@ -11,7 +11,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-// Entidad que representa la cabecera de un pedido realizado por un cliente.
 @Entity
 @Table(name = "pedidos")
 public class Pedido {
@@ -26,8 +25,9 @@ public class Pedido {
     @Column
     private Double total;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String estado;
+    private EstadoPedido estado; // PENDIENTE - PAGADO - ENVIADO - CANCELADO
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)
@@ -42,7 +42,7 @@ public class Pedido {
 
     public Pedido() {}
 
-    public Pedido(Double total, String estado, Cliente cliente) {
+    public Pedido(Double total, EstadoPedido estado, Cliente cliente) {
         this.total = total;
         this.estado = estado;
         this.cliente = cliente;
@@ -51,6 +51,11 @@ public class Pedido {
     public void agregarDetalle(DetallePedido detalle) {
         detalles.add(detalle);
         detalle.setPedido(this);
+    }
+
+    public void eliminarDetalle(DetallePedido detalle) {
+        detalles.remove(detalle);
+        detalle.setPedido(null);
     }
 
     public Long getId() { return id; }
@@ -62,8 +67,8 @@ public class Pedido {
     public Double getTotal() { return total; }
     public void setTotal(Double total) { this.total = total; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public EstadoPedido getEstado() { return estado; }
+    public void setEstado(EstadoPedido estado) { this.estado = estado; }
 
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }

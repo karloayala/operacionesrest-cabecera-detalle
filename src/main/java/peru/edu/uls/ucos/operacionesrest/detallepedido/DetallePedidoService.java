@@ -56,6 +56,7 @@ public class DetallePedidoService {
 
         DetallePedido detalle = detalleMapper.aEntidad(pedido, producto, request);
         DetallePedido detalleGuardado = detalleRepository.save(detalle);
+        pedido.agregarDetalle(detalle);
 
         Double subtotalDetalle = detalleGuardado.getCantidad() * detalleGuardado.getPrecioUnitario();
         Double totalActual = pedido.getTotal() == null ? 0.0 : pedido.getTotal();

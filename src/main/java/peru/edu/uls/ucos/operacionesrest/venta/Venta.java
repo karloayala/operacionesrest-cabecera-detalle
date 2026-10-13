@@ -23,8 +23,9 @@ public class Venta {
     @Column
     private Double total;
 
-    @Column
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
+    private EstadoVenta estado;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false)
@@ -39,7 +40,7 @@ public class Venta {
 
     public Venta() {}
 
-    public Venta(Double total, String estado, Cliente cliente) {
+    public Venta(Double total, EstadoVenta estado, Cliente cliente) {
         this.total = total;
         this.estado = estado;
         this.cliente = cliente;
@@ -59,8 +60,8 @@ public class Venta {
     public Double getTotal() { return total; }
     public void setTotal(Double total) { this.total = total; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public EstadoVenta getEstado() { return estado; }
+    public void setEstado(EstadoVenta estado) { this.estado = estado; }
 
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }

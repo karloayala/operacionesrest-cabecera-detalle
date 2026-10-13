@@ -17,9 +17,9 @@ public class VentaMapper {
     }
 
     public Venta aEntidad(VentaRequest request, Cliente cliente) {
-        String estadoInicial = request.estado() == null || request.estado().isBlank()
-                ? "PENDIENTE"
-                : request.estado();
+        EstadoVenta estadoInicial = request.estado() == null || request.estado().isBlank()
+                ? EstadoVenta.PENDIENTE
+                : EstadoVenta.valueOf(request.estado().trim().toUpperCase(java.util.Locale.ROOT));
         return new Venta(
             0.0,
             estadoInicial,

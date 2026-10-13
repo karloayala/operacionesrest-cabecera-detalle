@@ -9,9 +9,10 @@ public record PedidoResponse(
     Long id,
     LocalDateTime fecha,
     Double total,
-    String estado,
+    EstadoPedido estado,
     Long clienteId,
     String clienteNombre,
     String clienteDocumento,
-    List<DetallePedidoResponse> detalles
+    List<DetallePedidoResponse> detalles,
+    Long ventaId
 ) {}

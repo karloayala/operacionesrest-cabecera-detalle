@@ -6,6 +6,7 @@ import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.pedido.EstadoPedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
@@ -49,6 +50,10 @@ public class VentaService {
 
     @Transactional
     public VentaResponse registrarVenta(VentaRequest request) {
+        if (request.detalles() == null || request.detalles().isEmpty()) {
+             throw new IllegalArgumentException("La venta debe contener al menos un producto.");
+        }
+
         Cliente cliente = clienteRepository.findById(request.clienteId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.clienteId()));
 
@@ -57,27 +62,25 @@ public class VentaService {
         nuevaVenta.setFecha(LocalDateTime.now());
         double totalVenta = 0.0;
 
-        if (request.detalles() != null && !request.detalles().isEmpty()) {
-            for (var detReq : request.detalles()) {
-                Producto producto = productoRepository.findById(detReq.productoId())
-                        .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
+        for (var detReq : request.detalles()) {
+            Producto producto = productoRepository.findById(detReq.productoId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
 
-                Double precioUnitario = detReq.precioUnitario() != null ? detReq.precioUnitario() : producto.getPrecio();
-                if (precioUnitario == null || precioUnitario < 0) {
-                    throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
-                }
-
-                if (detReq.cantidad() == null || detReq.cantidad() <= 0) {
-                    throw new IllegalArgumentException("La cantidad del detalle debe ser mayor que cero.");
-                }
-
-                productoService.reducirStock(producto.getId(), detReq.cantidad());
-
-                VentaDetalle detalle = new VentaDetalle(nuevaVenta, producto, detReq.cantidad(), precioUnitario);
-                nuevaVenta.agregarDetalle(detalle);
-
-                totalVenta += detReq.cantidad() * precioUnitario;
+            Double precioUnitario = detReq.precioUnitario() != null ? detReq.precioUnitario() : producto.getPrecio();
+            if (precioUnitario == null || precioUnitario < 0) {
+                throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
             }
+
+            if (detReq.cantidad() == null || detReq.cantidad() <= 0) {
+                throw new IllegalArgumentException("La cantidad del detalle debe ser mayor que cero.");
+            }
+
+            productoService.reducirStock(producto.getId(), detReq.cantidad());
+
+            VentaDetalle detalle = new VentaDetalle(nuevaVenta, producto, detReq.cantidad(), precioUnitario);
+            nuevaVenta.agregarDetalle(detalle);
+
+            totalVenta += detReq.cantidad() * precioUnitario;
         }
 
         nuevaVenta.setTotal(totalVenta);
@@ -97,11 +100,11 @@ public class VentaService {
             throw new IllegalArgumentException("No se puede confirmar un pedido sin detalles.");
         }
 
-        Venta venta = new Venta(pedido.getTotal(), "CONFIRMADA", pedido.getCliente());
+        Venta venta = new Venta(pedido.getTotal(), EstadoVenta.CONFIRMADA, pedido.getCliente());
         venta.setFecha(LocalDateTime.now());
         venta.setPedido(pedido);
         pedido.setVenta(venta);
-        pedido.setEstado("CONFIRMADO");
+        pedido.setEstado(EstadoPedido.CONFIRMADO);
 
         for (var detallePedido : pedido.getDetalles()) {
             VentaDetalle detalleVenta = new VentaDetalle(

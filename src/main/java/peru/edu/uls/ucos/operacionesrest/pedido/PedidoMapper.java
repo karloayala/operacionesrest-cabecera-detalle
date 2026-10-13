@@ -18,9 +18,9 @@ public class PedidoMapper {
     }
 
     public Pedido aEntidad(PedidoRequest request, Cliente cliente) {
-        String estadoInicial = request.estado() == null || request.estado().isBlank()
-                ? "PENDIENTE"
-                : request.estado();
+        EstadoPedido estadoInicial = request.estado() == null || request.estado().isBlank()
+                ? EstadoPedido.PENDIENTE
+                : EstadoPedido.valueOf(request.estado().trim().toUpperCase(java.util.Locale.ROOT));
         return new Pedido(
             0.0,
             estadoInicial,
@@ -33,6 +33,7 @@ public class PedidoMapper {
         List<DetallePedidoResponse> detallesResp = pedido.getDetalles() == null 
                 ? List.of() 
                 : pedido.getDetalles().stream().map(detalleMapper::aRespuesta).toList();
+        Long ventaId = pedido.getVenta() != null ? pedido.getVenta().getId() : null;
 
         return new PedidoResponse(
             pedido.getId(),
@@ -42,7 +43,8 @@ public class PedidoMapper {
             cliente == null ? null : cliente.getId(),
             cliente == null ? null : cliente.getNombre(),
             cliente == null ? null : cliente.getDocumento(),
-            detallesResp
+            detallesResp,
+            ventaId
         );
     }
 }

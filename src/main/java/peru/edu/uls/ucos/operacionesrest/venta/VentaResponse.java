@@ -10,7 +10,7 @@ public record VentaResponse(
     Long pedidoId,
     LocalDateTime fecha,
     Double total,
-    String estado,
+    EstadoVenta estado,
     Long clienteId,
     String clienteNombre,
     String clienteDocumento,

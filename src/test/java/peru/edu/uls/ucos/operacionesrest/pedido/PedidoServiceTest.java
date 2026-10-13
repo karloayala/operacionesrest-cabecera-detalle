@@ -50,6 +50,6 @@ class PedidoServiceTest {
         PedidoRequest request = new PedidoRequest("PENDIENTE", 99L, List.of());
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(RecursoNoEncontradoException.class, () -> pedidoService.registrarProductoNuevo(request));
+        assertThrows(RecursoNoEncontradoException.class, () -> pedidoService.crearPedido(request));
     }
 }
