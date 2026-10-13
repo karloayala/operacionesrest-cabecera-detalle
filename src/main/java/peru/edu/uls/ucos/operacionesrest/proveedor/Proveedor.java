@@ -2,7 +2,7 @@ package peru.edu.uls.ucos.operacionesrest.proveedor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import peru.edu.uls.ucos.operacionesrest.producto.Producto;
+import peru.edu.uls.ucos.operacionesrest.compra.Compra;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class Proveedor {
 
     @JsonIgnore
     @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Producto> productos = new ArrayList<>();
+    private List<Compra> compras = new ArrayList<>();
 
     public Proveedor() {}
 
@@ -39,6 +39,6 @@ public class Proveedor {
     public void setContacto(String contacto) { this.contacto = contacto; }
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
-    public List<Producto> getProductos() { return productos; }
-    public void setProductos(List<Producto> productos) { this.productos = productos; }
+    public List<Compra> getCompras() { return compras; }
+    public void setCompras(List<Compra> compras) { this.compras = compras; }
 }
