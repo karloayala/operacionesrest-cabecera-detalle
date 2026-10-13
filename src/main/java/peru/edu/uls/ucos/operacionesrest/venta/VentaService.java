@@ -12,7 +12,6 @@ import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalle;
-import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;

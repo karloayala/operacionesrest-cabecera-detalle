@@ -7,7 +7,6 @@ import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedido;
 import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
-import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
