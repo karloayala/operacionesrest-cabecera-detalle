@@ -5,6 +5,5 @@ public record ProductoRequest(
     String marca,
     Double precio,
     Integer stock,
-    Long categoriaId,
-    Long proveedorId
+    Long categoriaId
 ) {}

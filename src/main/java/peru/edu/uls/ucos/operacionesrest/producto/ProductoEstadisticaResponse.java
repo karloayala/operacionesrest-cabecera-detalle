@@ -6,5 +6,4 @@ public record ProductoEstadisticaResponse(
         String productoMarca,
         Integer cantidadTotal,
         Double montoTotal
-) {
-}
+) {}

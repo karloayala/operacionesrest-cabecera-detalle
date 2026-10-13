@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/categorias")
 public class CategoriaController {
@@ -22,5 +24,15 @@ public class CategoriaController {
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaResponse> consultarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.consultarPorId(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CategoriaResponse>> listarTodas() {
+        return ResponseEntity.ok(service.listarTodas());
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<CategoriaResponse>> buscarPorNombre(@RequestParam("nombre") String nombre) {
+        return ResponseEntity.ok(service.buscarPorNombre(nombre));
     }
 }
