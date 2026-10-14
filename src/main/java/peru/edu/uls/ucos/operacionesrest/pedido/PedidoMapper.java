@@ -18,14 +18,7 @@ public class PedidoMapper {
     }
 
     public Pedido aEntidad(PedidoRequest request, Cliente cliente) {
-        EstadoPedido estadoInicial = request.estado() == null || request.estado().isBlank()
-                ? EstadoPedido.PENDIENTE
-                : EstadoPedido.valueOf(request.estado().trim().toUpperCase(java.util.Locale.ROOT));
-        return new Pedido(
-            0.0,
-            estadoInicial,
-            cliente
-        );
+        return new Pedido(0.0,cliente);
     }
 
     public PedidoResponse aRespuesta(Pedido pedido) {

@@ -7,13 +7,12 @@ import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 @Component
 public class VentaDetalleMapper {
 
-    public VentaDetalle aEntidad(Venta venta, Producto producto, VentaDetalleRequest request) {
-        Double precioUnitario = request.precioUnitario() != null ? request.precioUnitario() : producto.getPrecio();
+    public VentaDetalle aEntidad(Venta venta, Producto producto, Integer cantidad, Double precioUnitario) {
         return new VentaDetalle(
-            venta,
-            producto,
-            request.cantidad(),
-            precioUnitario
+                venta,
+                producto,
+                cantidad,
+                precioUnitario
         );
     }
 

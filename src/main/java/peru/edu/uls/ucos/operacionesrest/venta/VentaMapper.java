@@ -16,16 +16,9 @@ public class VentaMapper {
         this.detalleMapper = detalleMapper;
     }
 
-    public Venta aEntidad(VentaRequest request, Cliente cliente) {
-        EstadoVenta estadoInicial = request.estado() == null || request.estado().isBlank()
-                ? EstadoVenta.PENDIENTE
-                : EstadoVenta.valueOf(request.estado().trim().toUpperCase(java.util.Locale.ROOT));
-        return new Venta(
-            0.0,
-            estadoInicial,
-            cliente
-        );
-    }
+    // public Venta aEntidad(VentaRequest request, Cliente cliente) {
+    //     return null;
+    // }
 
     public VentaResponse aRespuesta(Venta venta) {
         Cliente cliente = venta.getCliente();

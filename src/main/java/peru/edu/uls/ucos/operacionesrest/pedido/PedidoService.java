@@ -5,12 +5,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
-import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedido;
+import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoRequest;
+import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoService;
 import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
-import peru.edu.uls.ucos.operacionesrest.producto.Producto;
-import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
-import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,19 +19,17 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final PedidoMapper pedidoMapper;
     private final ClienteRepository clienteRepository;
-    private final ProductoRepository productoRepository;
-    private final ProductoService productoService;
+    private final DetallePedidoService detallePedidoService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          PedidoMapper pedidoMapper,
                          ClienteRepository clienteRepository,
-                         ProductoRepository productoRepository,
-                         ProductoService productoService) {
+                         DetallePedidoService detallePedidoService
+                        ) {
         this.pedidoRepository = pedidoRepository;
         this.pedidoMapper = pedidoMapper;
         this.clienteRepository = clienteRepository;
-        this.productoRepository = productoRepository;
-        this.productoService = productoService;
+        this.detallePedidoService = detallePedidoService;
     }
 
     @Transactional(readOnly = true)
@@ -63,40 +59,23 @@ public class PedidoService {
     public PedidoResponse crearPedido(PedidoRequest request) {
 
         if (request.detalles() == null || request.detalles().isEmpty()) {
-             throw new IllegalArgumentException("El pedido debe contener al menos un producto.");
+            throw new IllegalArgumentException("El pedido debe contener al menos un producto.");
         }
 
         Cliente cliente = clienteRepository.findById(request.clienteId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con ID: " + request.clienteId()));
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Cliente no encontrado con ID: " + request.clienteId()));
 
         Pedido nuevoPedido = pedidoMapper.aEntidad(request, cliente);
+
         nuevoPedido.setFecha(LocalDateTime.now());
         nuevoPedido.setEstado(EstadoPedido.PENDIENTE);
-        double totalPedido = 0.0;
-        
+        nuevoPedido.setTotal(0.0);
+
         for (var detReq : request.detalles()) {
-            if (detReq.cantidad() == null || detReq.cantidad() <= 0){
-                throw new IllegalArgumentException( "La cantidad debe ser mayor que cero." );
-            }
-
-            Producto producto = productoRepository.findById(detReq.productoId())
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con ID: " + detReq.productoId()));
-
-            Double precioUnitario = detReq.precioUnitario() != null
-                ? detReq.precioUnitario()
-                : producto.getPrecio();
-            if (precioUnitario == null || precioUnitario < 0) {
-                throw new IllegalArgumentException("El precio unitario del detalle debe ser mayor o igual que cero.");
-            }
-
-            productoService.reducirStock(producto.getId(), detReq.cantidad());
-
-            DetallePedido detalle = new DetallePedido(nuevoPedido, producto, detReq.cantidad(), precioUnitario);
-            nuevoPedido.agregarDetalle(detalle);
-            totalPedido += detReq.cantidad() * precioUnitario;
+            detallePedidoService.agregarDetalleA(nuevoPedido, detReq);
         }
 
-        nuevoPedido.setTotal(totalPedido);
         Pedido pedidoGuardado = pedidoRepository.save(nuevoPedido);
 
         return pedidoMapper.aRespuesta(pedidoGuardado);

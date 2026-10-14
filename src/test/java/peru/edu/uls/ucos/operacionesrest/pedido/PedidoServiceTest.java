@@ -47,7 +47,7 @@ class PedidoServiceTest {
 
     @Test
     void registrarProductoNuevo_lanzaExcepcionCuandoClienteNoExiste() {
-        PedidoRequest request = new PedidoRequest("PENDIENTE", 99L, List.of());
+        PedidoRequest request = new PedidoRequest(99L, List.of());
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNoEncontradoException.class, () -> pedidoService.crearPedido(request));
