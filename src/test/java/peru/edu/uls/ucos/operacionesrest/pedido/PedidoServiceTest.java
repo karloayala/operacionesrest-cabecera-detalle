@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
+import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoRequest;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoService;
@@ -47,7 +48,7 @@ class PedidoServiceTest {
 
     @Test
     void registrarProductoNuevo_lanzaExcepcionCuandoClienteNoExiste() {
-        PedidoRequest request = new PedidoRequest(99L, List.of());
+        PedidoRequest request = new PedidoRequest(99L, List.of(new DetallePedidoRequest(1L, 1, 10.0)));
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNoEncontradoException.class, () -> pedidoService.crearPedido(request));
