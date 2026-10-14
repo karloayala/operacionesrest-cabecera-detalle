@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
-import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoRequest;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoService;
 import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
