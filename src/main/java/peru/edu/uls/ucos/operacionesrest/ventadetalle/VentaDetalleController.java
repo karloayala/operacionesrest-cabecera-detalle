@@ -16,6 +16,8 @@ public class VentaDetalleController {
         this.service = service;
     }
 
+    // 1. GET: Obtener el detalle de una venta por su ID
+    // curl -X GET http://localhost:8080/api/ventas-detalles/1
     @GetMapping("/{id}")
     public ResponseEntity<VentaDetalleResponse> consultarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.consultarPorId(id));

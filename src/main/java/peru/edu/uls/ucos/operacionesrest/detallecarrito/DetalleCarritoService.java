@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import peru.edu.uls.ucos.operacionesrest.carrito.Carrito;
+import peru.edu.uls.ucos.operacionesrest.carrito.CarritoItemRequest;
 import peru.edu.uls.ucos.operacionesrest.carrito.CarritoRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.CarritoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.DetalleCarritoNoEncontradoException;
@@ -33,12 +34,7 @@ public class DetalleCarritoService {
 
     @Transactional
     public DetalleCarritoResponse agregarDetalle(DetalleCarritoRequest request) {
-        if (request.cantidad() == null || request.cantidad() <= 0) {
-            throw new IllegalArgumentException("La cantidad del detalle del carrito debe ser mayor que cero.");
-        }
-        if (request.precioUnitario() == null || request.precioUnitario() < 0) {
-            throw new IllegalArgumentException("El precio unitario del detalle del carrito debe ser mayor o igual que cero.");
-        }
+        validarDetalle(request.cantidad(), request.precioUnitario());
 
         Carrito carrito = carritoRepository.findById(request.carritoId())
                 .orElseThrow(() -> new CarritoNoEncontradoException(
@@ -52,6 +48,16 @@ public class DetalleCarritoService {
         DetalleCarrito detalleGuardado = detalleRepository.save(detalle);
 
         return detalleMapper.aRespuesta(detalleGuardado);
+    }
+
+    public DetalleCarrito crearDetalle(Carrito carrito, CarritoItemRequest request) {
+        validarDetalle(request.cantidad(), request.precioUnitario());
+
+        Producto producto = productoRepository.findById(request.productoId())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con ID: " + request.productoId()));
+
+        return detalleMapper.aEntidad(carrito, producto, request);
     }
 
     @Transactional(readOnly = true)
@@ -71,5 +77,14 @@ public class DetalleCarritoService {
                 .stream()
                 .map(detalleMapper::aRespuesta)
                 .toList();
+    }
+
+    private void validarDetalle(Integer cantidad, Double precioUnitario) {
+        if (cantidad == null || cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad del detalle del carrito debe ser mayor que cero.");
+        }
+        if (precioUnitario == null || precioUnitario < 0) {
+            throw new IllegalArgumentException("El precio unitario del detalle del carrito debe ser mayor o igual que cero.");
+        }
     }
 }

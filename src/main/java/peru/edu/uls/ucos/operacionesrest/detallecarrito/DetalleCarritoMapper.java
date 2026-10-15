@@ -3,12 +3,22 @@ package peru.edu.uls.ucos.operacionesrest.detallecarrito;
 import org.springframework.stereotype.Component;
 
 import peru.edu.uls.ucos.operacionesrest.carrito.Carrito;
+import peru.edu.uls.ucos.operacionesrest.carrito.CarritoItemRequest;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 
 @Component
 public class DetalleCarritoMapper {
 
     public DetalleCarrito aEntidad(Carrito carrito, Producto producto, DetalleCarritoRequest request) {
+        return new DetalleCarrito(
+            carrito,
+            producto,
+            request.cantidad(),
+            request.precioUnitario()
+        );
+    }
+
+    public DetalleCarrito aEntidad(Carrito carrito, Producto producto, CarritoItemRequest request) {
         return new DetalleCarrito(
             carrito,
             producto,
