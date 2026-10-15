@@ -8,6 +8,7 @@ import peru.edu.uls.ucos.operacionesrest.categoria.CategoriaRepository;
 import peru.edu.uls.ucos.operacionesrest.proveedor.ProveedorRepository;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
+import peru.edu.uls.ucos.operacionesrest.excepciones.StockInsuficienteException;
 
 import java.util.List;
 
@@ -51,6 +52,27 @@ public class ProductoService {
         return repository.findById(id)
                 .map(mapper::aRespuesta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con el ID: " + id));
+    }
+
+    @Transactional
+    public void reducirStock(Long productoId, Integer cantidad) {
+        if (productoId == null || productoId <= 0) {
+            throw new IllegalArgumentException("El ID del producto debe ser mayor que cero.");
+        }
+        if (cantidad == null || cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad a descontar debe ser mayor que cero.");
+        }
+
+        Producto producto = repository.findById(productoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con ID: " + productoId));
+        if (producto.getStock() == null || producto.getStock() < cantidad) {
+            throw new StockInsuficienteException(
+                    "Stock insuficiente para el producto con ID: " + productoId);
+        }
+
+        producto.setStock(producto.getStock() - cantidad);
+        repository.save(producto);
     }
     
     @Transactional(readOnly = true)

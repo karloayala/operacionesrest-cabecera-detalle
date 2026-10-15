@@ -7,5 +7,5 @@ public record PagoResponse(
     String metodo,
     Double monto,
     LocalDateTime fechaPago,
-    Long ventaId
+    Long cuotaId
 ) {}

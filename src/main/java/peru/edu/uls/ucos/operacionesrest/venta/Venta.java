@@ -3,6 +3,7 @@ package peru.edu.uls.ucos.operacionesrest.venta;
 import jakarta.persistence.*;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
+import peru.edu.uls.ucos.operacionesrest.planpago.PlanPago;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalle;
 
 import java.time.LocalDateTime;
@@ -38,6 +39,9 @@ public class Venta {
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VentaDetalle> detalles = new ArrayList<>();
 
+    @OneToOne(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PlanPago planPago;
+
     public Venta() {}
 
     public Venta(Double total, EstadoVenta estado, Cliente cliente) {
@@ -71,4 +75,16 @@ public class Venta {
 
     public List<VentaDetalle> getDetalles() { return detalles; }
     public void setDetalles(List<VentaDetalle> detalles) { this.detalles = detalles; }
+
+    public PlanPago getPlanPago() { return planPago; }
+    public void setPlanPago(PlanPago planPago) {
+        this.planPago = planPago;
+        if (planPago != null) {
+            planPago.setVenta(this);
+        }
+    }
+
+    public void agregarPlanPago(PlanPago planPago) {
+        setPlanPago(planPago);
+    }
 }

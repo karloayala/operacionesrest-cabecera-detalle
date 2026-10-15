@@ -2,9 +2,10 @@ package peru.edu.uls.ucos.operacionesrest.pago;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
+import peru.edu.uls.ucos.operacionesrest.cuota.CuotaRepository;
+import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
-import peru.edu.uls.ucos.operacionesrest.venta.Venta;
-import peru.edu.uls.ucos.operacionesrest.venta.VentaRepository;
 
 import java.time.LocalDateTime;
 
@@ -13,12 +14,12 @@ public class PagoService {
 
     private final PagoRepository pagoRepository;
     private final PagoMapper pagoMapper;
-    private final VentaRepository ventaRepository;
+    private final CuotaRepository cuotaRepository;
 
-    public PagoService(PagoRepository pagoRepository, PagoMapper pagoMapper, VentaRepository ventaRepository) {
+    public PagoService(PagoRepository pagoRepository, PagoMapper pagoMapper, CuotaRepository cuotaRepository) {
         this.pagoRepository = pagoRepository;
         this.pagoMapper = pagoMapper;
-        this.ventaRepository = ventaRepository;
+        this.cuotaRepository = cuotaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -30,12 +31,31 @@ public class PagoService {
 
     @Transactional
     public PagoResponse registrarPago(PagoRequest request) {
-        Venta venta = ventaRepository.findById(request.ventaId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Venta no encontrada con ID: " + request.ventaId()));
+        if (request == null) {
+            throw new IllegalArgumentException("Los datos del pago son obligatorios.");
+        }
+        if (request.metodo() == null || request.metodo().isBlank()) {
+            throw new IllegalArgumentException("El método de pago es obligatorio.");
+        }
+        if (request.monto() == null || !Double.isFinite(request.monto()) || request.monto() <= 0) {
+            throw new IllegalArgumentException("El monto del pago debe ser un número finito mayor que cero.");
+        }
+        if (request.cuotaId() == null || request.cuotaId() <= 0) {
+            throw new IllegalArgumentException("El ID de la cuota debe ser mayor que cero.");
+        }
 
-        Pago pago = pagoMapper.aEntidad(request, venta);
+        Cuota cuota = cuotaRepository.findById(request.cuotaId())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Cuota no encontrada con ID: " + request.cuotaId()));
+
+        if (pagoRepository.existsByCuotaId(cuota.getId())) {
+            throw new RecursoDuplicadoException("La cuota ya tiene un pago registrado.");
+        }
+
+        Pago pago = pagoMapper.aEntidad(request, cuota);
         pago.setFechaPago(LocalDateTime.now());
-        return pagoMapper.aRespuesta(pagoRepository.save(pago));
+        Pago pagoGuardado = pagoRepository.save(pago);
+        cuota.setPago(pagoGuardado);
+        return pagoMapper.aRespuesta(pagoGuardado);
     }
 }
