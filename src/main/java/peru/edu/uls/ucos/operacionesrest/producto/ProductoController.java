@@ -48,4 +48,10 @@ public class ProductoController {
     public ResponseEntity<List<ProductoEstadisticaResponse>> estadisticasPorProveedor(@PathVariable Long proveedorId) {
         return ResponseEntity.ok(service.listarEstadisticasPorProveedor(proveedorId));
     }
+
+    @PutMapping("/stock/{id}")
+    public ResponseEntity<Producto> actualizarStock(@PathVariable Long id, @RequestParam Integer nuevoStock) {
+        Producto producto = service.actualizarStock(id, nuevoStock);
+        return ResponseEntity.ok(producto);
+    }
 }

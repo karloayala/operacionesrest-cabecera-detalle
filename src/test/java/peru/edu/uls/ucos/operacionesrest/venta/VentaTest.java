@@ -1,6 +1,7 @@
 package peru.edu.uls.ucos.operacionesrest.venta;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,7 +24,11 @@ class VentaTest {
     @DisplayName("Debe consultar una venta por su ID")
     void testConsultarVentaPorId() throws Exception {
         mockMvc.perform(get("/api/ventas/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.estado").exists())
+            .andExpect(jsonPath("$.total").exists())
+            .andExpect(jsonPath("$.pedidoId").exists());
     }
 }

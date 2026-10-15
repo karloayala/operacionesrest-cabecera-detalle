@@ -1,6 +1,8 @@
 package peru.edu.uls.ucos.operacionesrest.pedido;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,9 +15,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoRequest;
+import peru.edu.uls.ucos.operacionesrest.producto.Producto;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @SpringBootTest
@@ -28,9 +35,19 @@ class RegistrarPedidoTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ProductoRepository productoRepository;
+
     @Test
     @DisplayName("Debe registrar un pedido con sus detalles")
     void testRegistrarPedidoConDetalles() throws Exception {
+        
+        Producto producto1 = productoRepository.findById(1L).orElseThrow();
+        Producto producto2 = productoRepository.findById(2L).orElseThrow();
+        
+        int stockInicial1 = producto1.getStock();
+        int stockInicial2 = producto2.getStock();
+
 
         List<DetallePedidoRequest> detalles = List.of(
                 new DetallePedidoRequest(1L, 1, 100.00),
@@ -41,11 +58,38 @@ class RegistrarPedidoTest {
                 1L,
                 detalles
         );
+        
+        MvcResult resultado = mockMvc.perform(
+                post("/api/pedidos")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                )
+            .andDo(print())
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andReturn();
 
-        mockMvc.perform(post("/api/pedidos")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists());
+        // 4. Obtener el ID del pedido creado
+        JsonNode respuesta = objectMapper.readTree(
+            resultado.getResponse().getContentAsString()
+        );
+
+        long pedidoId = respuesta.get("id").asLong();
+
+        // 5. Verificar que el pedido se pueda consultar
+        mockMvc.perform(get("/api/pedidos/" + pedidoId))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(pedidoId))
+            .andExpect(jsonPath("$.detalles.length()").value(2))
+            .andExpect(jsonPath("$.total").value(350.00));
+        
+        // 6. Verificar que el stock haya disminuido.
+        Producto producto1Actualizado = productoRepository.findById(1L).orElseThrow();
+        Producto producto2Actualizado = productoRepository.findById(2L).orElseThrow();
+        
+        assertThat(producto1Actualizado.getStock()).isEqualTo(stockInicial1 - 1);
+        assertThat(producto2Actualizado.getStock()).isEqualTo(stockInicial2 - 1);
+        
     }
 }

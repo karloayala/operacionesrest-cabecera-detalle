@@ -1,6 +1,7 @@
 package peru.edu.uls.ucos.operacionesrest.detallepedido;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,9 +21,14 @@ class DetallePedidoTest {
 
     @Test
     @DisplayName("Debe consultar un detalle de pedido por su ID")
-    void testConsultarDetallePedidoPorId() throws Exception {
+    void testConsultarDetallePedidoPorId() throws Exception {   
         mockMvc.perform(get("/api/detalles/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.cantidad").exists())
+            .andExpect(jsonPath("$.precioUnitario").exists());
     }
+
+
 }

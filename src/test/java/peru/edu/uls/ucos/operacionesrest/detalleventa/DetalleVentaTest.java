@@ -3,6 +3,7 @@ package peru.edu.uls.ucos.operacionesrest.detalleventa;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,12 @@ class VentaDetalleTest {
     @Test
     @DisplayName("Debe consultar un detalle de venta por su ID")
     void testConsultarVentaDetallePorId() throws Exception {
-        mockMvc.perform(get("/api/detalles-venta/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());
-    }
+        mockMvc.perform(get("/api/venta-detalles/1"))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.cantidad").exists())
+        .andExpect(jsonPath("$.precioUnitario").exists())
+        .andExpect(jsonPath("$.productoId").exists());
+        }
 }

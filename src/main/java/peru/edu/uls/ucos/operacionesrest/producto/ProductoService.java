@@ -111,4 +111,18 @@ public class ProductoService {
         }
         return filas.stream().map(mapper::aRespuestaEstadistica).toList();
     }
+
+    @Transactional
+    public Producto actualizarStock(Long productoId, Integer nuevoStock) {
+        Producto producto = repository.findById(productoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Producto no encontrado"));
+
+        if (nuevoStock == null || nuevoStock < 0) {
+            throw new IllegalArgumentException("El stock no puede ser negativo ni nulo");
+        }
+
+        producto.setStock(nuevoStock);
+        return repository.save(producto);
+    }
 }

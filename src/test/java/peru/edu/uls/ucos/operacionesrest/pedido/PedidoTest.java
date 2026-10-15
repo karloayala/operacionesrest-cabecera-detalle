@@ -3,6 +3,7 @@ package peru.edu.uls.ucos.operacionesrest.pedido;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,10 @@ class PedidoTest {
     @DisplayName("Debe consultar un pedido por su ID")
     void testConsultarPedidoPorId() throws Exception {
         mockMvc.perform(get("/api/pedidos/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+            .andExpect(jsonPath("$.total").value(450.0));
     }
 }
