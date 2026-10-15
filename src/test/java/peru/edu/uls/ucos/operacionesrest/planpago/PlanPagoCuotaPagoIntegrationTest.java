@@ -12,8 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
+import peru.edu.uls.ucos.operacionesrest.cuota.CuotaRepository;
+import peru.edu.uls.ucos.operacionesrest.cuota.CuotaRequest;
 import peru.edu.uls.ucos.operacionesrest.pago.Pago;
 import peru.edu.uls.ucos.operacionesrest.pago.PagoRepository;
+import peru.edu.uls.ucos.operacionesrest.pago.PagoRequest;
 import peru.edu.uls.ucos.operacionesrest.venta.EstadoVenta;
 import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 import peru.edu.uls.ucos.operacionesrest.venta.VentaRepository;
@@ -50,6 +53,9 @@ class PlanPagoCuotaPagoIntegrationTest {
     private PlanPagoRepository planPagoRepository;
 
     @Autowired
+    private CuotaRepository cuotaRepository;
+
+    @Autowired
     private PagoRepository pagoRepository;
 
     private PlanPago planPago;
@@ -62,7 +68,7 @@ class PlanPagoCuotaPagoIntegrationTest {
 
         planPago = new PlanPago();
         planPago.setTipoPago("CUOTAS");
-        planPago.setCantCuotas(1);
+        planPago.setCantCuotas(2);
         planPago.setVenta(venta);
         venta.agregarPlanPago(planPago);
 
@@ -145,6 +151,119 @@ class PlanPagoCuotaPagoIntegrationTest {
         assertThat(persistedPlanPago.getCuotas()).hasSize(2);
         assertThat(persistedPlanPago.getCuotas())
                 .allSatisfy(persistedCuota -> assertThat(persistedCuota.getPlanPago().getId()).isEqualTo(planPagoId));
+    }
+
+    @Test
+    @DisplayName("B: registra una cuota en un plan de pago")
+    void registrarCuotaEnPlanPago() throws Exception {
+        CuotaRequest request = new CuotaRequest(
+                2,
+                50.0,
+                LocalDateTime.of(2026, 12, 15, 0, 0),
+                "PENDIENTE",
+                planPago.getId()
+        );
+
+        mockMvc.perform(post("/api/cuotas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.numeroCuota").value(2))
+                .andExpect(jsonPath("$.planPagoId").value(planPago.getId()));
+    }
+
+    @Test
+    @DisplayName("B: registra un pago para una cuota pendiente")
+    void registrarPagoParaCuotaPendiente() throws Exception {
+        Cuota cuotaPendiente = new Cuota();
+        cuotaPendiente.setNumeroCuota(2);
+        cuotaPendiente.setMonto(50.0);
+        cuotaPendiente.setFechaVencimiento(LocalDateTime.of(2026, 12, 15, 0, 0));
+        cuotaPendiente.setEstado("PENDIENTE");
+        cuotaPendiente.setPlanPago(planPago);
+        cuotaPendiente = cuotaRepository.saveAndFlush(cuotaPendiente);
+
+        PagoRequest request = new PagoRequest("EFECTIVO", 50.0, cuotaPendiente.getId());
+
+        mockMvc.perform(post("/api/pagos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.metodo").value("EFECTIVO"))
+                .andExpect(jsonPath("$.monto").value(50.0))
+                .andExpect(jsonPath("$.cuotaId").value(cuotaPendiente.getId()));
+    }
+
+    @Test
+    @DisplayName("C: devuelve not found al consultar recursos inexistentes")
+    void consultarRecursosInexistentesDevuelveNotFound() throws Exception {
+        mockMvc.perform(get("/api/planes-pago/{id}", Long.MAX_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Plan de pago no encontrado con el ID: " + Long.MAX_VALUE));
+
+        mockMvc.perform(get("/api/cuotas/{id}", Long.MAX_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Cuota no encontrada con el ID: " + Long.MAX_VALUE));
+
+        mockMvc.perform(get("/api/pagos/{id}", Long.MAX_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Pago no encontrado con el ID: " + Long.MAX_VALUE));
+    }
+
+    @Test
+    @DisplayName("C: rechaza planes duplicados y datos inválidos")
+    void registrarPlanPagoManejaDuplicadosYDatosInvalidos() throws Exception {
+        PlanPagoRequest planDuplicado = new PlanPagoRequest(
+                "CUOTAS", 2, planPago.getVenta().getId());
+        mockMvc.perform(post("/api/planes-pago")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(planDuplicado)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("La venta ya tiene un plan de pago."));
+
+        PlanPagoRequest planInvalido = new PlanPagoRequest("", 2, planPago.getVenta().getId());
+        mockMvc.perform(post("/api/planes-pago")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(planInvalido)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("El tipo de pago es obligatorio."));
+    }
+
+    @Test
+    @DisplayName("C: rechaza pagos duplicados y montos inválidos")
+    void registrarPagoManejaDuplicadosYDatosInvalidos() throws Exception {
+        PagoRequest pagoDuplicado = new PagoRequest("TARJETA", 50.0, cuota.getId());
+        mockMvc.perform(post("/api/pagos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pagoDuplicado)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("La cuota ya tiene un pago registrado."));
+
+        PagoRequest pagoInvalido = new PagoRequest("TARJETA", 0.0, cuota.getId());
+        mockMvc.perform(post("/api/pagos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pagoInvalido)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("El monto del pago debe ser un número finito mayor que cero."));
+    }
+
+    @Test
+    @DisplayName("C: rechaza cuotas con datos inválidos")
+    void registrarCuotaManejaDatosInvalidos() throws Exception {
+        CuotaRequest cuotaInvalida = new CuotaRequest(
+                0,
+                50.0,
+                LocalDateTime.of(2026, 12, 15, 0, 0),
+                "PENDIENTE",
+                planPago.getId()
+        );
+
+        mockMvc.perform(post("/api/cuotas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cuotaInvalida)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("El número de cuota debe ser mayor que cero."));
     }
 
     private Venta crearVenta() {
