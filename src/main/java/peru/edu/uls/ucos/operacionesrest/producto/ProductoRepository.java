@@ -1,14 +1,21 @@
 package peru.edu.uls.ucos.operacionesrest.producto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
 import java.util.List;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     boolean existsByNombreIgnoreCase(String nombre);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Producto p WHERE p.id = :id")
+    Optional<Producto> findByIdForUpdate(@Param("id") Long id);
     
     List<Producto> findByMarcaIgnoreCase(String marca);
     

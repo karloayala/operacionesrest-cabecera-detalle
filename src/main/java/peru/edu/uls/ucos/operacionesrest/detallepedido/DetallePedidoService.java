@@ -48,7 +48,7 @@ public class DetallePedidoService {
             throw new IllegalArgumentException("La cantidad del detalle debe ser mayor que cero.");
         }
 
-        Producto producto = productoRepository.findById(request.productoId())
+        Producto producto = productoRepository.findByIdForUpdate(request.productoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Producto no encontrado con ID: " + request.productoId()));
 
