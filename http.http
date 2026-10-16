@@ -3,7 +3,41 @@
 GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/detalles/pedido/1
 
 ### CONSULTAR PEDIDO
-GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/pedidos/7
+GET https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/pedidos/6
 
-### CONSULTAR VENTA
-GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/ventas/7
+### CREAR PEDIDO
+POST https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/pedidos
+Content-Type: application/json
+
+{
+    "clienteId": 4,
+    "detalles": [
+        {
+        "productoId": 3,
+        "cantidad": 2,
+        "precioUnitario": 100.0
+        }
+    ]
+}
+
+### AGREGAR DETALLE
+POST https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/detalles/agregar/6/
+Content-Type: application/json
+
+{
+    "productoId": 4,
+    "cantidad": 12,
+    "precioUnitario": 650
+}
+
+
+### CONSULTAR CLIENTE
+GET https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/clientes/4
+
+### CONSULTAR PRODUCTO
+GET https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/productos/4
+
+
+### CREAR UNA VENTA DE UN PEDIDO
+POST https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/ventas/confirmar-pedido/6
+

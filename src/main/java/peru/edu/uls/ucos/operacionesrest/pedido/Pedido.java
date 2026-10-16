@@ -42,9 +42,8 @@ public class Pedido {
 
     public Pedido() {}
 
-    public Pedido(Double total, EstadoPedido estado, Cliente cliente) {
+    public Pedido(Double total , Cliente cliente) {
         this.total = total;
-        this.estado = estado;
         this.cliente = cliente;
     }
 

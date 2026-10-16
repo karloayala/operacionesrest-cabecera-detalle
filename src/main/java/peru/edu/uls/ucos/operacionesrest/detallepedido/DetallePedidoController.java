@@ -20,22 +20,27 @@ public class DetallePedidoController {
     public DetallePedidoController(DetallePedidoService service) {
         this.service = service;
     }
-
-    // 1. POST /api/detalles
-    @PostMapping
-    public ResponseEntity<DetallePedidoResponse> agregarDetalle(@RequestBody DetallePedidoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.agregarDetalle(request));
-    }
-
-    // 2. GET /api/detalles/{id}
+    
+    // 1. GET: Obtener detalle de pedido por su ID
+    // curl -X GET http://localhost:8080/api/detalles/1
     @GetMapping("/{id}")
     public ResponseEntity<DetallePedidoResponse> consultarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.consultarPorId(id));
     }
 
-    // 3. GET /api/detalles/pedido/{pedidoId}
+    // 2. GET: Listar detalles de un pedido por su ID
+    // curl -X GET http://localhost:8080/api/detalles/pedido/1
     @GetMapping("/pedido/{pedidoId}")
     public ResponseEntity<List<DetallePedidoResponse>> listarPorPedido(@PathVariable Long pedidoId) {
         return ResponseEntity.ok(service.listarPorPedido(pedidoId));
+    }
+
+    // 3. POST: Agregar un detalle a un pedido por su ID
+    // curl -X POST http://localhost:8080/api/detalles/agregar/1 \
+    //      -H "Content-Type: application/json" \
+    //      -d '{"productoId":1,"cantidad":2,"precioUnitario":25.50}'    
+    @PostMapping("/agregar/{id}")
+    public ResponseEntity<DetallePedidoResponse> agregarDetalle(@PathVariable Long id, @RequestBody DetallePedidoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.agregarDetalle(id,request));
     }
 }

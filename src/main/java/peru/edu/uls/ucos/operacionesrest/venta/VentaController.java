@@ -16,28 +16,31 @@ public class VentaController {
         this.ventaService = ventaService;
     }
 
+    // 1. GET: Obtener una venta por su ID
+    // curl -X GET http://localhost:8080/api/ventas/1
     @GetMapping("/{id}")
     public ResponseEntity<VentaResponse> consultarVentaPorId(@PathVariable Long id) {
         return ResponseEntity.ok(ventaService.consultarVentaPorId(id));
     }
 
-    @PostMapping
-    public ResponseEntity<VentaResponse> registrarVenta(@RequestBody VentaRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.registrarVenta(request));
-    }
-
-    @PostMapping("/pedido/{pedidoId}/confirmar")
-    public ResponseEntity<VentaResponse> confirmarPedido(@PathVariable Long pedidoId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.confirmarPedido(pedidoId));
-    }
-
+    // 2. GET: Obtener las ventas por su estado
+    // curl -X GET http://localhost:8080/api/ventas/estado/CONFIRMADA
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<VentaResponse>> consultarPorEstado(@PathVariable String estado) {
         return ResponseEntity.ok(ventaService.consultarPorEstado(estado));
     }
 
+    // 3. GET: Obtener las ventas de un cliente por su ID
+    // curl -X GET http://localhost:8080/api/ventas/cliente/1
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<VentaResponse>> consultarPorCliente(@PathVariable Long clienteId) {
         return ResponseEntity.ok(ventaService.consultarPorCliente(clienteId));
+    }
+
+    // 4. POST: Confirmar un pedido y generar su venta
+    // curl -X POST http://localhost:8080/api/ventas/confirmar-pedido/4
+    @PostMapping("/confirmar-pedido/{pedidoId}")
+    public ResponseEntity<VentaResponse> confirmarPedido(@PathVariable Long pedidoId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.confirmarPedido(pedidoId));
     }
 }

@@ -5,10 +5,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
@@ -33,11 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @Transactional
 class PlanPagoCuotaPagoIntegrationTest {
 
     @Autowired
+    private WebApplicationContext context;
+    
     private MockMvc mockMvc;
 
     @Autowired
@@ -64,6 +66,9 @@ class PlanPagoCuotaPagoIntegrationTest {
 
     @BeforeEach
     void prepararDatos() {
+        // Inicializa MockMvc manualmente para evitar conflictos de compatibilidad
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
         Venta venta = crearVenta();
 
         planPago = new PlanPago();
