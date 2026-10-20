@@ -5,5 +5,6 @@ public enum EstadoVenta {
     CONFIRMADA,
     PAGADA,
     CANCELADA,
-    COMPLETADA
+    COMPLETADA,
+    PAGANDO
 }

@@ -17,9 +17,9 @@ public class PedidoMapper {
         this.detalleMapper = detalleMapper;
     }
 
-    public Pedido aEntidad(PedidoRequest request, Cliente cliente) {
-        return new Pedido(0.0,cliente);
-    }
+    // public Pedido aEntidad(PedidoRequest request, Cliente cliente) {
+    //     return new Pedido(0.0,cliente);
+    // }
 
     public PedidoResponse aRespuesta(Pedido pedido) {
         Cliente cliente = pedido.getCliente();

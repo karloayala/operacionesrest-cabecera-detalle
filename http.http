@@ -1,12 +1,57 @@
 
+### ================ C A R R I T O ========================
+
+### Obtener carrito por ID
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/carritos/2
+
+### Registrar un nuevo carrito
+POST https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/carritos
+Content-Type: application/json
+
+{
+    "estado" : "ACTIVO",
+    "clienteId" : 2,
+    
+}
+
+
+### ================ D E T A L L E  -  C A R R I T O ========================
+### Obtener dedtalles de carrito por ID
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/detalle-carrito/1
+
+### Obtener dedtalles de carrito por ID
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/detalle-carrito/carrito/2
+
+### Agregar detalle a Carrito
+POST https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/detalle-carrito
+Content-Type: application/json
+
+{
+    "carritoId": 2,
+    "productoId": 4,
+    "cantidad": 2,
+    "precioUnitario": 200
+}
+
+### ================ P E D I D O ========================
+### Obtener pedido por ID
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/pedidos/15
+
+### Obtener pedidoS de un cleitne por su ID
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/pedidos/cliente/2
+
+### CREAR PEDIDO por el carrito
+POST https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/pedidos/crear-pedido/2
+
+### ==========================================================
 ### Consultar los detalles de un pedido (POST)
-GET https://cautious-happiness-wr96jg45x5jjh5rp4-8080.app.github.dev/api/detalles/pedido/1
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/detalles/pedido/1
 
 ### CONSULTAR PEDIDO
-GET https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/pedidos/6
+GET https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/pedidos/6
 
 ### CREAR PEDIDO
-POST https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/pedidos
+POST https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/pedidos
 Content-Type: application/json
 
 {
@@ -21,7 +66,7 @@ Content-Type: application/json
 }
 
 ### AGREGAR DETALLE
-POST https://animated-meme-69r674p5wprvfpgg-8080.app.github.dev/api/detalles/agregar/6/
+POST https://crispy-computing-machine-g459w7pr667phvxpw-8080.app.github.dev/api/detalles/agregar/6/
 Content-Type: application/json
 
 {

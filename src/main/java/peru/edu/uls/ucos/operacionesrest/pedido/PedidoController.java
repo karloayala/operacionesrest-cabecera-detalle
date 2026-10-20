@@ -51,13 +51,19 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.consultarPorCliente(clienteId));
     }
 
-    // 6. POST: Crear un nuevo pedido
-    // curl -X POST http://localhost:8080/api/pedidos \
-    //      -H "Content-Type: application/json" \
-    //      -d '{"clienteId":1, "detalles":[{"productoId":2, "cantidad": 1}]}'
-    @PostMapping
-    public ResponseEntity<PedidoResponse> crearPedido(@RequestBody PedidoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearPedido(request));
-    }
+    // // 6. POST: Crear un nuevo pedido
+    // // curl -X POST http://localhost:8080/api/pedidos \
+    // //      -H "Content-Type: application/json" \
+    // //      -d '{"clienteId":1, "detalles":[{"productoId":2, "cantidad": 1}]}'
+    // @PostMapping
+    // public ResponseEntity<PedidoResponse> crearPedido(@RequestBody PedidoRequest request) {
+    //     return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearPedido(request));
+    // }
 
+    // 6. POST: CREAR PEDIDO por el carrito y generar su pedido
+    // curl -X POST http://localhost:8080/api/pedidos/crearPedido/2
+    @PostMapping("/crear-pedido/{carritoId}")
+    public ResponseEntity<PedidoResponse> crearPedido(@PathVariable Long carritoId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.crearPedido(carritoId));
+    }
 }

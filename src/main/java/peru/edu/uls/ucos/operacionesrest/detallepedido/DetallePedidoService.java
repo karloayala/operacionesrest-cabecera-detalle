@@ -31,64 +31,7 @@ public class DetallePedidoService {
         this.productoRepository = productoRepository;
     }
 
-    @Transactional
-    public DetallePedidoResponse agregarDetalle(Long pedidoId, DetallePedidoRequest request) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new PedidoNoEncontradoException(
-                        "Pedido no encontrado con ID: " + pedidoId));
-
-        DetallePedido detalle = agregarDetalleA(pedido, request);
-
-        pedidoRepository.save(pedido);
-        return detalleMapper.aRespuesta(detalle);
-    }
-
-    public DetallePedido agregarDetalleA(Pedido pedido, DetallePedidoRequest request) {
-        if (request.cantidad() == null || request.cantidad() <= 0) {
-            throw new IllegalArgumentException("La cantidad del detalle debe ser mayor que cero.");
-        }
-
-        Producto producto = productoRepository.findById(request.productoId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Producto no encontrado con ID: " + request.productoId()));
-
-        Double precioUnitario = request.precioUnitario() != null
-                ? request.precioUnitario()
-                : producto.getPrecio();
-
-        if (precioUnitario == null || precioUnitario < 0) {
-            throw new IllegalArgumentException(
-                    "El precio unitario debe ser mayor o igual que cero.");
-        }
-
-        reducirStock(producto, request.cantidad());
-
-        DetallePedido detalle = new DetallePedido(
-                pedido, producto,
-                request.cantidad(), precioUnitario);
-
-        pedido.agregarDetalle(detalle);
-
-        double subtotal = request.cantidad() * precioUnitario;
-        double totalActual = pedido.getTotal() == null
-                ? 0.0
-                : pedido.getTotal();
-
-        pedido.setTotal(totalActual + subtotal);
-        return detalle;
-    }
-
     
-    @Transactional
-    public void reducirStock(Producto producto, Integer cantidad) {
-        if (producto.getStock() == null || producto.getStock() < cantidad) {
-            throw new IllegalArgumentException("Stock insuficiente para el producto: " + producto.getNombre());
-        }
-
-        producto.setStock(producto.getStock() - cantidad);
-        productoRepository.save(producto);
-    }
-
     @Transactional(readOnly = true)
     public DetallePedidoResponse consultarPorId(Long id) {
         return detalleRepository.findById(id)
@@ -107,4 +50,58 @@ public class DetallePedidoService {
                 .map(detalleMapper::aRespuesta)
                 .toList();
     }
+
+    @Transactional
+    public DetallePedidoResponse agregarDetalle(Long pedidoId, DetallePedidoRequest request) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new PedidoNoEncontradoException(
+                        "Pedido no encontrado con ID: " + pedidoId));
+        Producto producto = productoRepository.findById(request.productoId())
+                .orElseThrow(() -> new PedidoNoEncontradoException(
+                        "Producto no encontrado con ID: " + request.productoId()));
+                        
+        DetallePedido agregar = detalleMapper.aEntidad(pedido, producto,request.cantidad(),request.precioUnitario());
+        
+        DetallePedido detalle = agregarDetalleA(pedido, agregar);
+
+        pedidoRepository.save(pedido);
+        return detalleMapper.aRespuesta(detalle);
+    }
+
+    @Transactional
+    public DetallePedido agregarDetalleA(Pedido pedido, DetallePedido request) {
+        if (request.getCantidad() == null || request.getCantidad() <= 0) {
+            throw new IllegalArgumentException("La cantidad del detalle debe ser mayor que cero.");
+        }
+
+        Producto producto = productoRepository.findById(request.getProducto().getId())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con ID: " + request.getProducto()));
+
+        Double precioUnitario = request.getPrecioUnitario() != null
+                ? request.getPrecioUnitario()
+                : producto.getPrecio();
+
+        if (precioUnitario == null || precioUnitario < 0) {
+            throw new IllegalArgumentException(
+                    "El precio unitario debe ser mayor o igual que cero.");
+        }
+
+        // reducirStock(producto, request.cantidad());
+
+        DetallePedido detalle = new DetallePedido(
+                pedido, producto,
+                request.getCantidad(), precioUnitario);
+
+        pedido.agregarDetalle(detalle);
+
+        double subtotal = request.getCantidad() * precioUnitario;
+        double totalActual = pedido.getTotal() == null
+                ? 0.0
+                : pedido.getTotal();
+
+        pedido.setTotal(totalActual + subtotal);
+        return detalle;
+    }
+
 }

@@ -14,10 +14,12 @@ import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
 
 @Service
 public class VentaService {
 
+    private final VentaDetalleService ventaDetalleService;
     private final VentaRepository ventaRepository;
     private final VentaMapper ventaMapper;
     private final ClienteRepository clienteRepository;
@@ -28,12 +30,13 @@ public class VentaService {
                        VentaMapper ventaMapper,
                        ClienteRepository clienteRepository,
                        PedidoRepository pedidoRepository,
-                       VentaDetalleMapper ventaDetalleMapper) {
+                       VentaDetalleMapper ventaDetalleMapper, VentaDetalleService ventaDetalleService) {
         this.ventaRepository = ventaRepository;
         this.ventaMapper = ventaMapper;
         this.clienteRepository = clienteRepository;
         this.pedidoRepository = pedidoRepository;
         this.ventaDetalleMapper = ventaDetalleMapper;
+        this.ventaDetalleService = ventaDetalleService;
     }
 
     @Transactional(readOnly = true)
@@ -76,6 +79,7 @@ public class VentaService {
             );
 
             venta.agregarDetalle(detalleVenta);
+            ventaDetalleService.reducirStock(detalleVenta.getProducto(),detalleVenta.getCantidad());
         }
 
         pedido.setVenta(venta);

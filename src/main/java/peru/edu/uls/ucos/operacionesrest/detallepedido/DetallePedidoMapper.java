@@ -8,12 +8,12 @@ import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 @Component
 public class DetallePedidoMapper {
 
-    public DetallePedido aEntidad(Pedido pedido, Producto producto, DetallePedidoRequest request) {
+    public DetallePedido aEntidad(Pedido pedido, Producto producto, Integer cantidad, Double precioUnitario) {
         return new DetallePedido(
             pedido,
             producto,
-            request.cantidad(),
-            request.precioUnitario()
+            cantidad,
+            precioUnitario
         );
     }
 

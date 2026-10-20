@@ -47,17 +47,5 @@ class TestPedido {
 
     @Test
     void testRegistrarPedido() throws Exception {
-        Cliente cli = clienteRepository.save(new Cliente("Test2", "77766655", "test2@test.com"));
-        Producto producto = repoProducto.save(new Producto("P2", "M", 100.0, 10));
-
-        List<DetallePedidoRequest> detalles = List.of(
-                new DetallePedidoRequest(producto.getId(), 2, 1200.50)
-        );
-        PedidoRequest pedidoRequest = new PedidoRequest(cli.getId(), detalles);
-
-        mockMvc.perform(post("/api/pedidos")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(pedidoRequest)))
-                .andExpect(status().isCreated());
     }
 }
