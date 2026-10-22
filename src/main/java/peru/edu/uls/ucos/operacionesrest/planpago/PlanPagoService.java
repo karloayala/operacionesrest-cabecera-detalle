@@ -8,6 +8,9 @@ import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
 import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 import peru.edu.uls.ucos.operacionesrest.venta.VentaRepository;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Service
 public class PlanPagoService {
 
@@ -42,9 +45,6 @@ public class PlanPagoService {
         if (request.cantCuotas() == null || request.cantCuotas() <= 0) {
             throw new IllegalArgumentException("La cantidad de cuotas debe ser mayor que cero.");
         }
-        if (request.cuotas() != null && request.cuotas().size() > request.cantCuotas()) {
-            throw new IllegalArgumentException("Las cuotas registradas no pueden superar la cantidad indicada.");
-        }
         if (request.ventaId() == null || request.ventaId() <= 0) {
             throw new IllegalArgumentException("El ID de la venta debe ser mayor que cero.");
         }
@@ -56,14 +56,35 @@ public class PlanPagoService {
         if (planPagoRepository.existsByVentaId(venta.getId())) {
             throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
         }
+        if (venta.getTotal() == null || !Double.isFinite(venta.getTotal()) || venta.getTotal() <= 0) {
+            throw new IllegalArgumentException("El total de la venta debe ser un número finito mayor que cero.");
+        }
+        if (venta.getFecha() == null) {
+            throw new IllegalArgumentException("La fecha de la venta es obligatoria para generar los vencimientos.");
+        }
 
         PlanPago planPago = planPagoMapper.aEntidad(request, venta);
         venta.agregarPlanPago(planPago);
-        if (request.cuotas() != null) {
-            for (PlanPagoRequest.CuotaPlanPagoRequest cuotaRequest : request.cuotas()) {
-                Cuota cuota = planPagoMapper.cuotaAEntidad(cuotaRequest, planPago);
-                planPago.agregarCuota(cuota);
-            }
+        BigDecimal totalEnCentimos = BigDecimal.valueOf(venta.getTotal())
+                .setScale(2, RoundingMode.HALF_UP)
+                .movePointRight(2);
+        BigDecimal cantidadCuotas = BigDecimal.valueOf(request.cantCuotas());
+        BigDecimal centimosBase = totalEnCentimos.divideToIntegralValue(cantidadCuotas);
+        int cuotasConCentimoAdicional = totalEnCentimos.remainder(cantidadCuotas).intValueExact();
+        if (centimosBase.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException(
+                    "El total de la venta no alcanza para generar montos positivos para todas las cuotas.");
+        }
+
+        for (int i = 0; i < request.cantCuotas(); i++) {
+            BigDecimal montoEnCentimos = centimosBase
+                    .add(i < cuotasConCentimoAdicional ? BigDecimal.ONE : BigDecimal.ZERO);
+            Cuota cuota = new Cuota();
+            cuota.setNumeroCuota(i + 1);
+            cuota.setMonto(montoEnCentimos.movePointLeft(2).doubleValue());
+            cuota.setFechaVencimiento(venta.getFecha().plusMonths(i + 1L));
+            cuota.setEstado("PENDIENTE");
+            planPago.agregarCuota(cuota);
         }
         return planPagoMapper.aRespuesta(planPagoRepository.save(planPago));
     }

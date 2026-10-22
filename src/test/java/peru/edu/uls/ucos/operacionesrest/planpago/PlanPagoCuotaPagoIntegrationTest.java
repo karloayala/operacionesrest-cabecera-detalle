@@ -122,15 +122,18 @@ class PlanPagoCuotaPagoIntegrationTest {
     @DisplayName("B: registra un plan de pago con sus cuotas")
     void registrarPlanPagoConCuotas() throws Exception {
         Venta venta = crearVenta();
+        LocalDateTime fechaVenta = LocalDateTime.of(2026, 10, 15, 0, 0);
+        venta.setFecha(fechaVenta);
+        ventaRepository.saveAndFlush(venta);
         PlanPagoRequest request = new PlanPagoRequest(
                 "CUOTAS",
-                2,
+                3,
                 venta.getId(),
                 List.of(
                         new PlanPagoRequest.CuotaPlanPagoRequest(
-                                1, 75.0, LocalDateTime.of(2026, 11, 15, 0, 0), "PENDIENTE"),
+                                1, 1.0, fechaVenta, "INVALIDO"),
                         new PlanPagoRequest.CuotaPlanPagoRequest(
-                                2, 75.0, LocalDateTime.of(2026, 12, 15, 0, 0), "PENDIENTE")
+                                2, 1.0, fechaVenta, "INVALIDO")
                 )
         );
 
@@ -140,14 +143,24 @@ class PlanPagoCuotaPagoIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.ventaId").value(venta.getId()))
-                .andExpect(jsonPath("$.cuotas.length()").value(2))
+                .andExpect(jsonPath("$.cuotas.length()").value(3))
+                .andExpect(jsonPath("$.cuotas[0].monto").value(50.0))
+                .andExpect(jsonPath("$.cuotas[0].numeroCuota").value(1))
+                .andExpect(jsonPath("$.cuotas[0].estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$.cuotas[2].numeroCuota").value(3))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         Long planPagoId = objectMapper.readTree(response).get("id").asLong();
         PlanPago persistedPlanPago = planPagoRepository.findById(planPagoId).orElseThrow();
-        assertThat(persistedPlanPago.getCuotas()).hasSize(2);
+        assertThat(persistedPlanPago.getCuotas()).hasSize(3);
+        assertThat(persistedPlanPago.getCuotas())
+                .extracting(Cuota::getFechaVencimiento)
+                .containsExactly(
+                        fechaVenta.plusMonths(1),
+                        fechaVenta.plusMonths(2),
+                        fechaVenta.plusMonths(3));
         assertThat(persistedPlanPago.getCuotas())
                 .allSatisfy(persistedCuota -> assertThat(persistedCuota.getPlanPago().getId()).isEqualTo(planPagoId));
     }
