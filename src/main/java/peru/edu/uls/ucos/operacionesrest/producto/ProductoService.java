@@ -125,4 +125,18 @@ public class ProductoService {
         producto.setStock(nuevoStock);
         return repository.save(producto);
     }
+
+    @Transactional
+    public void aumentarStock(Long productoId, Integer cantidad) {
+        if (cantidad == null || cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad a ingresar debe ser mayor que cero.");
+        }
+        Producto producto = repository.findById(productoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Producto no encontrado con ID: " + productoId));
+        
+        int stockActual = (producto.getStock() != null) ? producto.getStock() : 0;
+        producto.setStock(stockActual + cantidad);
+        repository.save(producto);
+    }
 }

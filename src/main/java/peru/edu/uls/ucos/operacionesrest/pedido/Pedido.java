@@ -22,6 +22,13 @@ public class Pedido {
     @Column
     private LocalDateTime fecha;
 
+    @PrePersist
+    protected void asignarFechaAutomaticamente() {
+        if (this.fecha == null) {
+            this.fecha = LocalDateTime.now();
+        }
+    }
+
     @Column
     private Double total;
 

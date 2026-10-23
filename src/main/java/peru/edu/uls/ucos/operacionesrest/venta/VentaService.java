@@ -98,7 +98,8 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public List<VentaResponse> consultarPorEstado(String estado) {
-        return ventaRepository.findByEstadoIgnoreCase(estado)
+        EstadoVenta estadoEnum = EstadoVenta.valueOf(estado.toUpperCase());
+        return ventaRepository.findByEstado(estadoEnum)
                 .stream()
                 .map(ventaMapper::aRespuesta)
                 .toList();

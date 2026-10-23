@@ -7,7 +7,7 @@ import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "PAGO")
+@Table(name = "pagos")
 public class Pago {
 
     @Id
