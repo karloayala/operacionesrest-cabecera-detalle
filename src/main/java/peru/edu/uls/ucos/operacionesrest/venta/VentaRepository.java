@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
-    List<Venta> findByEstadoIgnoreCase(String estado);
+    List<Venta> findByEstado(EstadoVenta estado);
     List<Venta> findByClienteId(Long clienteId);
 
     // 7. Consulta JPQL con parámetro: Busca todas las ventas realizadas por un cliente utilizando su número de documento.

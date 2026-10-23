@@ -25,7 +25,7 @@ public class Venta {
     private Double total;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado")
+    @Column
     private EstadoVenta estado;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -9,11 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import peru.edu.uls.ucos.operacionesrest.detallecompra.DetalleCompraRequest;
 import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.proveedor.Proveedor;
 import peru.edu.uls.ucos.operacionesrest.proveedor.ProveedorRepository;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,7 +28,6 @@ class TestCompra {
     private WebApplicationContext context;
     private MockMvc mockMvc;
 
-    // Solución 1: Instanciar ObjectMapper manualmente
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -43,7 +43,6 @@ class TestCompra {
 
     @Test
     void testConsultarCompraPorId() throws Exception {
-        // Solución 2: Probar el manejo del 404 para no depender de la DB
         mockMvc.perform(get("/api/compras/9999"))
                 .andExpect(status().isNotFound());
     }
@@ -56,21 +55,12 @@ class TestCompra {
         int stockAntes = prod.getStock();
         int cantidadComprada = 10;
 
-        CompraRequest compraRequest = new CompraRequest(10000.0, "RECIBIDO", prov.getId());
+        DetalleCompraRequest detalle = new DetalleCompraRequest(prod.getId(), cantidadComprada, 1000.0);
+        CompraRequest compraRequest = new CompraRequest(prov.getId(), List.of(detalle));
 
-        String responseString = mockMvc.perform(post("/api/compras")
+        mockMvc.perform(post("/api/compras")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(compraRequest)))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-
-        Long compraId = objectMapper.readTree(responseString).get("id").asLong();
-
-        DetalleCompraRequest detalleRequest = new DetalleCompraRequest(cantidadComprada, 1000.0, compraId, prod.getId());
-
-        mockMvc.perform(post("/api/detalle-compras")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(detalleRequest)))
                 .andExpect(status().isCreated());
 
         Producto productoActualizado = repoProducto.findById(prod.getId()).orElseThrow();
