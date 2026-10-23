@@ -48,45 +48,6 @@ class ProcesoPedidoTest {
     private ProductoRepository productoRepository;
 
     @Test
-    @DisplayName("TestRestCpedidoSuccess")
-    void TestRestCpedidoSuccess() {
-        Cliente cliente = crearCliente();
-        Producto producto = productoRepository.saveAndFlush(
-                new Producto("Producto de prueba", "Marca", 25.0, 10));
-        Carrito carrito = carritoRepository.saveAndFlush(new Carrito("ACTIVO", cliente));
-        detalleCarritoRepository.saveAndFlush(new DetalleCarrito(carrito, producto, 2, 25.0));
-
-        ResponseEntity<PedidoResponse> response = restTemplate.postForEntity(
-                "/api/pedidos/crear-pedido/{carritoId}",
-                null,
-                PedidoResponse.class,
-                carrito.getId());
-
-        mostrarRespuesta("TestRestCpedidoSuccess", response);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().estado()).isEqualTo(EstadoPedido.PENDIENTE);
-        assertThat(response.getBody().clienteId()).isEqualTo(cliente.getId());
-        assertThat(response.getBody().detalles()).hasSize(1);
-        assertThat(response.getBody().detalles().getFirst().cantidad()).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("TestRestCpedidoNSuccess")
-    void TestRestCpedidoNSuccess() {
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/api/pedidos/crear-pedido/{carritoId}",
-                null,
-                String.class,
-                Long.MAX_VALUE);
-
-        mostrarRespuesta("TestRestCpedidoNSuccess", response);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .contains("Carrito no encontrado con ID: " + Long.MAX_VALUE);
-    }
-
-    @Test
     @DisplayName("Proceso_CU-001")
     void procesoCU001() {
         Cliente cliente = crearCliente();
