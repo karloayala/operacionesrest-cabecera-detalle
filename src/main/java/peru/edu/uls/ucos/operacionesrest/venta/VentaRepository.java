@@ -8,7 +8,14 @@ import java.util.List;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
     List<Venta> findByEstado(EstadoVenta estado);
-    List<Venta> findByClienteId(Long clienteId);
+    // 6.  todas las ventas realizadas por un cliente utilizando su ID.
+    @Query("""
+        SELECT v
+        FROM Venta v
+        JOIN v.cliente c
+        WHERE c.id = :clienteId
+        """)
+    List<Venta> buscarPorClienteId(@Param("clienteId") Long clienteId);
 
     // 7. Consulta JPQL con parámetro: Busca todas las ventas realizadas por un cliente utilizando su número de documento.
     @Query("""

@@ -110,7 +110,7 @@ public class VentaService {
         if (!clienteRepository.existsById(clienteId)) {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + clienteId);
         }
-        return ventaRepository.findByClienteId(clienteId)
+        return ventaRepository.buscarPorClienteId(clienteId)
                 .stream()
                 .map(ventaMapper::aRespuesta)
                 .toList();
