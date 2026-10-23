@@ -12,10 +12,13 @@ import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
 import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalle;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleMapper;
+import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class VentaService {
@@ -27,6 +30,9 @@ public class VentaService {
     private final PedidoRepository pedidoRepository;
     private final VentaDetalleMapper ventaDetalleMapper;
     private final ProductoRepository productoRepository;
+
+    // Mapa para gestionar los candados (locks) por pedido y evitar condiciones de carrera
+    private final ConcurrentHashMap<Long, Lock> locksPorPedido = new ConcurrentHashMap<>();
 
     public VentaService(VentaRepository ventaRepository,
                        VentaMapper ventaMapper,
@@ -54,46 +60,55 @@ public class VentaService {
 
     @Transactional
     public VentaResponse confirmarPedido(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Pedido no encontrado con ID: " + pedidoId));
+        // 1. Obtener o crear un Lock específico para este ID de pedido
+        Lock lock = locksPorPedido.computeIfAbsent(pedidoId, k -> new ReentrantLock());
+        
+        lock.lock(); // Bloquear acceso a otros hilos para este mismo pedido
+        try {
+            Pedido pedido = pedidoRepository.findById(pedidoId)
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "Pedido no encontrado con ID: " + pedidoId));
 
-        if (pedido.getVenta() != null) {
-            throw new RecursoDuplicadoException("El pedido ya fue confirmado con una venta.");
-        }
+            if (pedido.getVenta() != null) {
+                throw new RecursoDuplicadoException("El pedido ya fue confirmado con una venta.");
+            }
 
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new IllegalArgumentException("Solo se pueden confirmar pedidos pendientes.");
-        }
+            if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+                throw new IllegalArgumentException("Solo se pueden confirmar pedidos pendientes.");
+            }
 
-        Venta venta = new Venta(
-                pedido.getTotal(),
-                EstadoVenta.CONFIRMADA,
-                pedido.getCliente()
-        );
-
-        venta.setFecha(LocalDateTime.now());
-        venta.setPedido(pedido);
-
-        for (DetallePedido detallePedido : pedido.getDetalles()) {
-
-            VentaDetalle detalleVenta = ventaDetalleMapper.aEntidad(
-                    venta,
-                    detallePedido.getProducto(),
-                    detallePedido.getCantidad(),
-                    detallePedido.getPrecioUnitario()
+            Venta venta = new Venta(
+                    pedido.getTotal(),
+                    EstadoVenta.CONFIRMADA,
+                    pedido.getCliente()
             );
 
-            venta.agregarDetalle(detalleVenta);
-            ventaDetalleService.reducirStock(detalleVenta.getProducto(),detalleVenta.getCantidad());
+            venta.setFecha(LocalDateTime.now());
+            venta.setPedido(pedido);
+
+            for (DetallePedido detallePedido : pedido.getDetalles()) {
+
+                VentaDetalle detalleVenta = ventaDetalleMapper.aEntidad(
+                        venta,
+                        detallePedido.getProducto(),
+                        detallePedido.getCantidad(),
+                        detallePedido.getPrecioUnitario()
+                );
+
+                venta.agregarDetalle(detalleVenta);
+                ventaDetalleService.reducirStock(detalleVenta.getProducto(), detalleVenta.getCantidad());
+            }
+
+            pedido.setVenta(venta);
+            pedido.setEstado(EstadoPedido.CONFIRMADO);
+
+            Venta ventaGuardada = ventaRepository.save(venta);
+
+            return ventaMapper.aRespuesta(ventaGuardada);
+        } finally {
+            lock.unlock(); // Siempre liberar el candado al terminar
+            locksPorPedido.remove(pedidoId); // Limpiar memoria
         }
-
-        pedido.setVenta(venta);
-        pedido.setEstado(EstadoPedido.CONFIRMADO);
-
-        Venta ventaGuardada = ventaRepository.save(venta);
-
-        return ventaMapper.aRespuesta(ventaGuardada);
     }
 
     @Transactional(readOnly = true)

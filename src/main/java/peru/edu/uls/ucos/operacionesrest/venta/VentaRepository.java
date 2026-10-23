@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
     List<Venta> findByEstado(EstadoVenta estado);
@@ -31,9 +32,10 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
         SELECT DISTINCT v
         FROM Venta v
         JOIN v.detalles d
-        WHERE d.producto.id = :productoId
+        join d.producto p
+        WHERE p.id = :productoId
         """)
-    List<Venta> buscarPorProducto(@Param("productoId") Long productoId);
+    Optional<Venta> buscarPorProducto(@Param("productoId") Long productoId);
 
     // 9. Consulta JPQL sin parámetro: Obtiene todas las ventas junto con sus detalles y los productos asociados a cada detalle.
     @Query("""
