@@ -16,7 +16,6 @@ import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,8 +30,8 @@ public class VentaService {
     private final VentaDetalleMapper ventaDetalleMapper;
     private final ProductoRepository productoRepository;
 
-    // Mapa para gestionar los candados (locks) por pedido y evitar condiciones de carrera
-    private final ConcurrentHashMap<Long, Lock> locksPorPedido = new ConcurrentHashMap<>();
+    // Candado global para evitar que hilos simultáneos rompan el stock
+    private final Lock lock = new ReentrantLock();
 
     public VentaService(VentaRepository ventaRepository,
                        VentaMapper ventaMapper,
@@ -60,10 +59,7 @@ public class VentaService {
 
     @Transactional
     public VentaResponse confirmarPedido(Long pedidoId) {
-        // 1. Obtener o crear un Lock específico para este ID de pedido
-        Lock lock = locksPorPedido.computeIfAbsent(pedidoId, k -> new ReentrantLock());
-        
-        lock.lock(); // Bloquear acceso a otros hilos para este mismo pedido
+        lock.lock(); 
         try {
             Pedido pedido = pedidoRepository.findById(pedidoId)
                     .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -87,7 +83,6 @@ public class VentaService {
             venta.setPedido(pedido);
 
             for (DetallePedido detallePedido : pedido.getDetalles()) {
-
                 VentaDetalle detalleVenta = ventaDetalleMapper.aEntidad(
                         venta,
                         detallePedido.getProducto(),
@@ -103,11 +98,9 @@ public class VentaService {
             pedido.setEstado(EstadoPedido.CONFIRMADO);
 
             Venta ventaGuardada = ventaRepository.save(venta);
-
             return ventaMapper.aRespuesta(ventaGuardada);
         } finally {
-            lock.unlock(); // Siempre liberar el candado al terminar
-            locksPorPedido.remove(pedidoId); // Limpiar memoria
+            lock.unlock(); 
         }
     }
 
@@ -131,7 +124,6 @@ public class VentaService {
                 .toList();
     }
 
-    // Consulta multi-entidad: busca todas las ventas que contienen un producto específico (venta + detalle_venta + producto).
     @Transactional(readOnly = true)
     public List<VentaResponse> consultarPorProducto(Long productoId) {
         if (!productoRepository.existsById(productoId)) {
