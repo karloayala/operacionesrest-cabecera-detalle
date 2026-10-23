@@ -2,6 +2,12 @@ package peru.edu.uls.ucos.operacionesrest.pedido;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +53,9 @@ class ProcesoPedidoTest {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
     @Test
     @DisplayName("Proceso_CU-001")
     void procesoCU001() {
@@ -69,6 +78,46 @@ class ProcesoPedidoTest {
         assertThat(response.getBody().clienteId()).isEqualTo(cliente.getId());
         assertThat(response.getBody().detalles()).hasSize(1);
         assertThat(response.getBody().detalles().getFirst().cantidad()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("No debe crear dos pedidos al confirmar simultáneamente el mismo carrito")
+    void noDebeCrearPedidosDuplicadosEnSolicitudesSimultaneas() throws Exception {
+        Cliente cliente = crearCliente();
+        Producto producto = productoRepository.saveAndFlush(
+                new Producto("Producto concurrente", "Marca", 25.0, 10));
+        Carrito carrito = carritoRepository.saveAndFlush(new Carrito("ACTIVO", cliente));
+        detalleCarritoRepository.saveAndFlush(new DetalleCarrito(carrito, producto, 1, 25.0));
+
+        long pedidosAntes = pedidoRepository.count();
+        CountDownLatch inicio = new CountDownLatch(1);
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Future<ResponseEntity<String>> primeraSolicitud = executor.submit(() -> {
+                inicio.await();
+                return crearPedido(carrito.getId());
+            });
+            Future<ResponseEntity<String>> segundaSolicitud = executor.submit(() -> {
+                inicio.await();
+                return crearPedido(carrito.getId());
+            });
+
+            inicio.countDown();
+
+            List<Integer> estados = List.of(
+                    primeraSolicitud.get().getStatusCode().value(),
+                    segundaSolicitud.get().getStatusCode().value());
+
+            assertThat(estados).containsExactlyInAnyOrder(
+                    HttpStatus.CREATED.value(),
+                    HttpStatus.CONFLICT.value());
+        }
+
+        assertThat(pedidoRepository.count()).isEqualTo(pedidosAntes + 1);
+        assertThat(carritoRepository.findById(carrito.getId()))
+                .get()
+                .extracting(Carrito::getEstado)
+                .isEqualTo("PROCESADO");
     }
 
     @Test
@@ -116,5 +165,13 @@ class ProcesoPedidoTest {
                 "Cliente de prueba",
                 "DNI-" + java.util.UUID.randomUUID(),
                 "cliente@example.test"));
+    }
+
+    private ResponseEntity<String> crearPedido(Long carritoId) {
+        return restTemplate.postForEntity(
+                "/api/pedidos/crear-pedido/{carritoId}",
+                null,
+                String.class,
+                carritoId);
     }
 }

@@ -10,8 +10,8 @@ import peru.edu.uls.ucos.operacionesrest.detallecarrito.DetalleCarrito;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedido;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoMapper;
 import peru.edu.uls.ucos.operacionesrest.detallepedido.DetallePedidoService;
+import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.PedidoNoEncontradoException;
-// import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 
 
@@ -114,15 +114,17 @@ public class PedidoService {
 
     @Transactional
     public PedidoResponse crearPedido(Long carritoId) {
-        Carrito carrito = carritoRespository.findById(carritoId)
+        Carrito carrito = carritoRespository.buscarPorIdConBloqueo(carritoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Carrito no encontrado con ID: " + carritoId));
 
         if (carrito.getDetalles() == null || carrito.getDetalles().isEmpty()) {
-            throw new IllegalArgumentException("El pedido debe contener al menos un producto.");}
+            throw new IllegalArgumentException("El pedido debe contener al menos un producto.");
+        }
         
         if (!"ACTIVO".equals(carrito.getEstado())) {
-            throw new IllegalArgumentException("Solo se pueden confirmar carrito activo.");}
+            throw new PedidoDuplicadoException("El carrito ya fue procesado y no puede generar otro pedido.");
+        }
 
         Pedido pedido = new Pedido(
             0.0,
@@ -146,6 +148,7 @@ public class PedidoService {
         pedido.setEstado(EstadoPedido.PENDIENTE);
 
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
+        carrito.setEstado("PROCESADO");
         return pedidoMapper.aRespuesta(pedidoGuardado);
     }
 }
