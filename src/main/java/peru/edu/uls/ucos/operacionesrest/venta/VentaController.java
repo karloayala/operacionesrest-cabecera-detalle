@@ -43,4 +43,11 @@ public class VentaController {
     public ResponseEntity<VentaResponse> confirmarPedido(@PathVariable Long pedidoId) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.confirmarPedido(pedidoId));
     }
+
+    // 5. GET: Obtener las ventas que contienen un producto específico en sus detalles
+    // curl -X GET http://localhost:8080/api/ventas/producto/2
+    @GetMapping("/producto/{productoId}")
+    public ResponseEntity<List<VentaResponse>> consultarPorProducto(@PathVariable Long productoId) {
+        return ResponseEntity.ok(ventaService.consultarPorProducto(productoId));
+    }
 }

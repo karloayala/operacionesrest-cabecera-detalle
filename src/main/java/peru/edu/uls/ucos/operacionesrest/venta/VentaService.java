@@ -9,6 +9,7 @@ import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoExceptio
 import peru.edu.uls.ucos.operacionesrest.pedido.EstadoPedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalle;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleMapper;
 
@@ -25,18 +26,23 @@ public class VentaService {
     private final ClienteRepository clienteRepository;
     private final PedidoRepository pedidoRepository;
     private final VentaDetalleMapper ventaDetalleMapper;
+    private final ProductoRepository productoRepository;
 
     public VentaService(VentaRepository ventaRepository,
                        VentaMapper ventaMapper,
                        ClienteRepository clienteRepository,
                        PedidoRepository pedidoRepository,
-                       VentaDetalleMapper ventaDetalleMapper, VentaDetalleService ventaDetalleService) {
+                       VentaDetalleMapper ventaDetalleMapper, 
+                       VentaDetalleService ventaDetalleService,
+                       ProductoRepository productoRepository)
+        {
         this.ventaRepository = ventaRepository;
         this.ventaMapper = ventaMapper;
         this.clienteRepository = clienteRepository;
         this.pedidoRepository = pedidoRepository;
         this.ventaDetalleMapper = ventaDetalleMapper;
         this.ventaDetalleService = ventaDetalleService;
+        this.productoRepository = productoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +110,18 @@ public class VentaService {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + clienteId);
         }
         return ventaRepository.findByClienteId(clienteId)
+                .stream()
+                .map(ventaMapper::aRespuesta)
+                .toList();
+    }
+
+    // Consulta multi-entidad: busca todas las ventas que contienen un producto específico (venta + detalle_venta + producto).
+    @Transactional(readOnly = true)
+    public List<VentaResponse> consultarPorProducto(Long productoId) {
+        if (!productoRepository.existsById(productoId)) {
+            throw new RecursoNoEncontradoException("Producto no encontrado con ID: " + productoId);
+        }
+        return ventaRepository.buscarPorProducto(productoId)
                 .stream()
                 .map(ventaMapper::aRespuesta)
                 .toList();

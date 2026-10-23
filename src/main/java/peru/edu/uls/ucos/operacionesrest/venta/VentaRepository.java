@@ -36,4 +36,16 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
         LEFT JOIN FETCH d.producto
         """)
     List<Venta> buscarTodasConDetallesYProductos();
+
+    // 10. Consulta JPQL con parámetro: Obtiene una venta específica junto con su cliente, sus
+    // detalles y los productos asociados a cada detalle (venta + cliente + detalle_venta + producto).
+    @Query("""
+        SELECT DISTINCT v
+        FROM Venta v
+        LEFT JOIN FETCH v.cliente
+        LEFT JOIN FETCH v.detalles d
+        LEFT JOIN FETCH d.producto
+        WHERE v.id = :id
+        """)
+    List<Venta> buscarCompletaPorId(@Param("id") Long id);
 }
