@@ -99,11 +99,14 @@ public class PlanPagoService {
         return Optional.of(planPagoMapper.aRespuesta(planPagoRepository.save(planPago)));
     }
 
-    private void marcarComoPagadoAlContado(Venta venta) {
-        if (planPagoRepository.existsByVentaId(venta.getId())) {
-            throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
-        }
-        venta.setEstado(EstadoVenta.PAGADO_AL_CONTADO);
-        ventaRepository.save(venta);
+  private void marcarComoPagadoAlContado(Venta venta) {
+    if (venta.esPagadoAlContado()) {
+        throw new RecursoDuplicadoException("La venta ya fue registrada como pagada al contado.");
     }
+    if (planPagoRepository.existsByVentaId(venta.getId())) {
+        throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
+    }
+    venta.setEstado(EstadoVenta.PAGADO_AL_CONTADO);
+    ventaRepository.save(venta);
+}
 }
