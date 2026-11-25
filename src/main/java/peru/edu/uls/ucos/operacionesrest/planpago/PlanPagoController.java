@@ -25,7 +25,9 @@ public class PlanPagoController {
     }
 
     @PostMapping
-    public ResponseEntity<PlanPagoResponse> registrarPlanPago(@RequestBody PlanPagoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.registrarPlanPago(request));
+    public ResponseEntity<Object> registrarPlanPago(@RequestBody PlanPagoRequest request) {
+        return service.registrarPlanPago(request)
+                .<ResponseEntity<Object>>map(planPago -> ResponseEntity.status(HttpStatus.CREATED).body(planPago))
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

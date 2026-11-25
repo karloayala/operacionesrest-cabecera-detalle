@@ -48,6 +48,9 @@ public class PagoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Cuota no encontrada con ID: " + request.cuotaId()));
 
+        if (cuota.getPlanPago().getVenta().esPagadoAlContado()) {
+            throw new IllegalArgumentException("No se puede generar un pago para una venta pagada al contado.");
+        }
         if (pagoRepository.existsByCuotaId(cuota.getId())) {
             throw new RecursoDuplicadoException("La cuota ya tiene un pago registrado.");
         }

@@ -54,6 +54,10 @@ public class CuotaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Plan de pago no encontrado con el ID: " + request.planPagoId()));
 
+        if (planPago.getVenta().esPagadoAlContado()) {
+            throw new IllegalArgumentException("No se puede generar una cuota para una venta pagada al contado.");
+        }
+
         Cuota cuota = cuotaMapper.aEntidad(request, planPago);
         planPago.agregarCuota(cuota);
         return cuotaMapper.aRespuesta(cuotaRepository.save(cuota));
