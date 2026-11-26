@@ -41,9 +41,7 @@ public class PlanPagoService {
         if (request == null) {
             throw new IllegalArgumentException("Los datos del plan de pago son obligatorios.");
         }
-        if (request.tipoPago() == null || request.tipoPago().isBlank()) {
-            throw new IllegalArgumentException("El tipo de pago es obligatorio.");
-        }
+    
         if (request.cantCuotas() == null || request.cantCuotas() <= 0) {
             throw new IllegalArgumentException("La cantidad de cuotas debe ser mayor que cero.");
         }

@@ -13,4 +13,7 @@ public interface CarritoRepository extends JpaRepository<Carrito, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Carrito c WHERE c.id = :id")
     Optional<Carrito> buscarPorIdConBloqueo(@Param("id") Long id);
+
+    @Query("SELECT c FROM Carrito c JOIN c.cliente cl WHERE cl.documento = :documento AND c.estado = 'ACTIVO'")
+    Optional<Carrito> buscarCarritoActivoPorDocumentoCliente(@Param("documento") String documento);
 }

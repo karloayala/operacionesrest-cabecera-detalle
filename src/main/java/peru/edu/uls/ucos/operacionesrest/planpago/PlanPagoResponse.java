@@ -6,7 +6,6 @@ import java.util.List;
 
 public record PlanPagoResponse(
         Long id,
-        String tipoPago,
         Integer cantCuotas,
         Long ventaId,
         List<CuotaResponse> cuotas

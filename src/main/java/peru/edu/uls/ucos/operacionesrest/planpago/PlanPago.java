@@ -16,9 +16,6 @@ public class PlanPago {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tipo_pago", nullable = false)
-    private String tipoPago;
-
     @Column(name = "cant_cuotas", nullable = false)
     private int cantCuotas;
 
@@ -33,14 +30,6 @@ public class PlanPago {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public String getTipoPago() { return tipoPago; }
-    public void setTipoPago(String tipoPago) {
-        if (tipoPago == null || tipoPago.isBlank()) {
-            throw new IllegalArgumentException("El tipo de pago es obligatorio.");
-        }
-        this.tipoPago = tipoPago;
-    }
 
     public int getCantCuotas() { return cantCuotas; }
     public void setCantCuotas(int cantCuotas) {

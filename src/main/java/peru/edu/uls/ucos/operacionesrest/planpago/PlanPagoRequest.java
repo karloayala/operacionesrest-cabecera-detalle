@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PlanPagoRequest(
-        String tipoPago,
         Integer cantCuotas,
         Long ventaId,
         List<CuotaPlanPagoRequest> cuotas
 ) {
-    public PlanPagoRequest(String tipoPago, Integer cantCuotas, Long ventaId) {
-        this(tipoPago, cantCuotas, ventaId, null);
+    public PlanPagoRequest(Integer cantCuotas, Long ventaId) {
+        this(cantCuotas, ventaId, null);
     }
 
     public record CuotaPlanPagoRequest(

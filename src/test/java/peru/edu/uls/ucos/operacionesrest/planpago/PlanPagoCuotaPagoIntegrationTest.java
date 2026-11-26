@@ -72,7 +72,6 @@ class PlanPagoCuotaPagoIntegrationTest {
         Venta venta = crearVenta();
 
         planPago = new PlanPago();
-        planPago.setTipoPago("CUOTAS");
         planPago.setCantCuotas(1);
         planPago.setVenta(venta);
         venta.agregarPlanPago(planPago);
@@ -132,7 +131,6 @@ class PlanPagoCuotaPagoIntegrationTest {
         venta.setFecha(fechaVenta);
         ventaRepository.saveAndFlush(venta);
         PlanPagoRequest request = new PlanPagoRequest(
-                "CUOTAS",
                 3,
                 venta.getId(),
                 List.of(
@@ -178,7 +176,7 @@ class PlanPagoCuotaPagoIntegrationTest {
         long planesAntes = planPagoRepository.count();
         long cuotasAntes = cuotaRepository.count();
         long pagosAntes = pagoRepository.count();
-        PlanPagoRequest request = new PlanPagoRequest("CUOTAS", 1, venta.getId(), List.of());
+        PlanPagoRequest request = new PlanPagoRequest(1, venta.getId(), List.of());
 
         mockMvc.perform(post("/api/planes-pago")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -197,7 +195,7 @@ class PlanPagoCuotaPagoIntegrationTest {
     @DisplayName("No permite crear plan, cuota ni pago para una venta pagada al contado")
     void noGeneraPlanCuotaNiPagoParaVentaPagadaAlContado() throws Exception {
         Venta venta = crearVenta(EstadoVenta.PGOCNTDO);
-        PlanPagoRequest planRequest = new PlanPagoRequest("CUOTAS", 2, venta.getId(), List.of());
+        PlanPagoRequest planRequest = new PlanPagoRequest(2, venta.getId(), List.of());
 
         mockMvc.perform(post("/api/planes-pago")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -206,7 +204,6 @@ class PlanPagoCuotaPagoIntegrationTest {
         assertThat(planPagoRepository.existsByVentaId(venta.getId())).isFalse();
 
         PlanPago planPagoExistente = new PlanPago();
-        planPagoExistente.setTipoPago("CUOTAS");
         planPagoExistente.setCantCuotas(2);
         planPagoExistente.setVenta(venta);
         planPagoRepository.saveAndFlush(planPagoExistente);

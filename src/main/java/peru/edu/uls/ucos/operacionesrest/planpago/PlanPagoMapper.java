@@ -16,7 +16,6 @@ public class PlanPagoMapper {
 
     public PlanPago aEntidad(PlanPagoRequest request, Venta venta) {
         PlanPago planPago = new PlanPago();
-        planPago.setTipoPago(request.tipoPago());
         planPago.setCantCuotas(request.cantCuotas());
         planPago.setVenta(venta);
         return planPago;
@@ -35,7 +34,6 @@ public class PlanPagoMapper {
     public PlanPagoResponse aRespuesta(PlanPago planPago) {
         return new PlanPagoResponse(
                 planPago.getId(),
-                planPago.getTipoPago(),
                 planPago.getCantCuotas(),
                 planPago.getVenta() == null ? null : planPago.getVenta().getId(),
                 planPago.getCuotas().stream().map(cuotaMapper::aRespuesta).toList()
