@@ -7,7 +7,7 @@ import peru.edu.uls.ucos.operacionesrest.producto.Producto;
 
 // Entidad que representa cada producto agregado al carrito con su cantidad y precio.
 @Entity
-@Table(name = "detalle_carrito")
+@Table(name = "detalle_carritos")
 public class DetalleCarrito {
 
     @Id

@@ -25,7 +25,7 @@ public class Venta {
     private Double total;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado")
+    @Column
     private EstadoVenta estado;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -66,6 +66,7 @@ public class Venta {
 
     public EstadoVenta getEstado() { return estado; }
     public void setEstado(EstadoVenta estado) { this.estado = estado; }
+    public boolean esPagadoAlContado() { return estado == EstadoVenta.PGOCNTDO; }
 
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }

@@ -16,8 +16,15 @@ public class Compra {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(name = "fecha")
     private LocalDateTime fecha;
+
+    @PrePersist
+    protected void asignarFechaAutomaticamente() {
+        if (this.fecha == null) {
+            this.fecha = LocalDateTime.now();
+        }
+    }
 
     @Column
     private Double total;

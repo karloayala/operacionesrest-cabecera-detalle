@@ -4,6 +4,7 @@ public enum EstadoVenta {
     PENDIENTE,
     CONFIRMADA,
     PAGADA,
+    PGOCNTDO,
     CANCELADA,
     COMPLETADA,
     PAGANDO

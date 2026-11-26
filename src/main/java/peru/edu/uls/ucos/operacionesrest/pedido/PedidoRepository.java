@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
-    List<Pedido> findByEstadoIgnoreCase(String estado);
+    List<Pedido> findByEstado(EstadoPedido estado);
     List<Pedido> findByClienteId(Long clienteId);
 
     // 1. JPQL con parámetro: Busca todos los pedidos asociados a un cliente a partir de su número de documento.

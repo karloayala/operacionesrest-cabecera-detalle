@@ -8,7 +8,7 @@ import peru.edu.uls.ucos.operacionesrest.planpago.PlanPago;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "CUOTA")
+@Table(name = "cuotas")
 public class Cuota {
 
     @Id

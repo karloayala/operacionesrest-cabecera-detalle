@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 
 @Entity
-@Table(name = "direccion")
+@Table(name = "direcciones")
 public class Direccion {
 
     @Id

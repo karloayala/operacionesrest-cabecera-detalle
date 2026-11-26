@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.detallecarrito.DetalleCarritoService;
+import peru.edu.uls.ucos.operacionesrest.excepciones.CarritoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 
 @Service
@@ -43,5 +44,12 @@ public class CarritoService {
         return repository.findById(id)
                 .map(mapper::aRespuesta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Carrito no encontrado con el ID: " + id));
+    }
+
+    public CarritoResponse consultarPorDocumentoCliente(String documento) {
+        return repository.buscarCarritoActivoPorDocumentoCliente(documento)
+                .map(mapper::aRespuesta)
+                .orElseThrow(() -> new CarritoNoEncontradoException(
+                        "No se encontró un carrito para el cliente con documento: " + documento));
     }
 }

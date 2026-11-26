@@ -69,7 +69,8 @@ public class PedidoService {
     
     @Transactional(readOnly = true)
     public List<PedidoResponse> consultarPorEstado(String estado) {
-        return pedidoRepository.findByEstadoIgnoreCase(estado)
+        EstadoPedido estadoEnum = EstadoPedido.valueOf(estado.toUpperCase());
+        return pedidoRepository.findByEstado(estadoEnum)
                 .stream()
                 .map(pedidoMapper::aRespuesta)
                 .toList();

@@ -34,4 +34,11 @@ public class CarritoController {
         CarritoResponse response = service.registrarCarrito(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    // GET: Obtener carrito activo por documento del cliente
+    // curl -X GET http://localhost:8080/api/carritos/documento/12345678
+    @GetMapping("/documento/{documento}")
+    public ResponseEntity<CarritoResponse> consultarPorDocumentoCliente(@PathVariable String documento) {
+        return ResponseEntity.ok(service.consultarPorDocumentoCliente(documento));
+    }
 }

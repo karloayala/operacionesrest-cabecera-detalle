@@ -5,10 +5,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
-    List<Venta> findByEstadoIgnoreCase(String estado);
-    List<Venta> findByClienteId(Long clienteId);
+    List<Venta> findByEstado(EstadoVenta estado);
+    // 6.  todas las ventas realizadas por un cliente utilizando su ID.
+    @Query("""
+        SELECT v
+        FROM Venta v
+        JOIN v.cliente c
+        WHERE c.id = :clienteId
+        """)
+    List<Venta> buscarPorClienteId(@Param("clienteId") Long clienteId);
 
     // 7. Consulta JPQL con parámetro: Busca todas las ventas realizadas por un cliente utilizando su número de documento.
     @Query("""
@@ -24,9 +32,10 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
         SELECT DISTINCT v
         FROM Venta v
         JOIN v.detalles d
-        WHERE d.producto.id = :productoId
+        join d.producto p
+        WHERE p.id = :productoId
         """)
-    List<Venta> buscarPorProducto(@Param("productoId") Long productoId);
+    Optional<Venta> buscarPorProducto(@Param("productoId") Long productoId);
 
     // 9. Consulta JPQL sin parámetro: Obtiene todas las ventas junto con sus detalles y los productos asociados a cada detalle.
     @Query("""
@@ -36,4 +45,16 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
         LEFT JOIN FETCH d.producto
         """)
     List<Venta> buscarTodasConDetallesYProductos();
+
+    // 10. Consulta JPQL con parámetro: Obtiene una venta específica junto con su cliente, sus
+    // detalles y los productos asociados a cada detalle (venta + cliente + detalle_venta + producto).
+    @Query("""
+        SELECT DISTINCT v
+        FROM Venta v
+        LEFT JOIN FETCH v.cliente
+        LEFT JOIN FETCH v.detalles d
+        LEFT JOIN FETCH d.producto
+        WHERE v.id = :id
+        """)
+    List<Venta> buscarCompletaPorId(@Param("id") Long id);
 }

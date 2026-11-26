@@ -5,11 +5,13 @@ import org.springframework.transaction.annotation.Transactional;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoDuplicadoException;
 import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoException;
 import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
+import peru.edu.uls.ucos.operacionesrest.venta.EstadoVenta;
 import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 import peru.edu.uls.ucos.operacionesrest.venta.VentaRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Optional;
 
 @Service
 public class PlanPagoService {
@@ -35,7 +37,7 @@ public class PlanPagoService {
     }
 
     @Transactional
-    public PlanPagoResponse registrarPlanPago(PlanPagoRequest request) {
+    public Optional<PlanPagoResponse> registrarPlanPago(PlanPagoRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Los datos del plan de pago son obligatorios.");
         }
@@ -53,6 +55,14 @@ public class PlanPagoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Venta no encontrada con el ID: " + request.ventaId()));
 
+        if (request.cantCuotas() == 1) {
+            marcarComoPagadoAlContado(venta);
+            return Optional.empty();
+        }
+
+        if (venta.esPagadoAlContado()) {
+            throw new IllegalArgumentException("No se puede generar un plan de pago para una venta pagada al contado.");
+        }
         if (planPagoRepository.existsByVentaId(venta.getId())) {
             throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
         }
@@ -86,6 +96,17 @@ public class PlanPagoService {
             cuota.setEstado("PENDIENTE");
             planPago.agregarCuota(cuota);
         }
-        return planPagoMapper.aRespuesta(planPagoRepository.save(planPago));
+        return Optional.of(planPagoMapper.aRespuesta(planPagoRepository.save(planPago)));
     }
+
+  private void marcarComoPagadoAlContado(Venta venta) {
+    if (venta.esPagadoAlContado()) {
+        throw new RecursoDuplicadoException("La venta ya fue registrada como pagada al contado.");
+    }
+    if (planPagoRepository.existsByVentaId(venta.getId())) {
+        throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
+    }
+    venta.setEstado(EstadoVenta.PGOCNTDO);
+    ventaRepository.save(venta);
+}
 }

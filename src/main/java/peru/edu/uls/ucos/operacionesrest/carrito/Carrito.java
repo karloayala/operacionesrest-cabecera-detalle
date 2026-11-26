@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "carrito")
+@Table(name = "carritos")
 public class Carrito {
 
     @Id
@@ -19,6 +19,13 @@ public class Carrito {
 
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
+
+    @PrePersist
+    protected void asignarFechaAutomaticamente() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
+    }
 
     private String estado;
 

@@ -1,7 +1,8 @@
 package peru.edu.uls.ucos.operacionesrest.compra;
 
+import java.util.List;
+
 public record CompraRequest(
-    Double total,
-    String estado,
-    Long proveedorId
+    Long proveedorId,
+    List<DetalleCompraRequest> detalles
 ) {}

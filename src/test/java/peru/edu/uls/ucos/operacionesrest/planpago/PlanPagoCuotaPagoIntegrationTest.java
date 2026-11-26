@@ -13,8 +13,11 @@ import org.springframework.web.context.WebApplicationContext;
 import peru.edu.uls.ucos.operacionesrest.cliente.Cliente;
 import peru.edu.uls.ucos.operacionesrest.cliente.ClienteRepository;
 import peru.edu.uls.ucos.operacionesrest.cuota.Cuota;
+import peru.edu.uls.ucos.operacionesrest.cuota.CuotaRepository;
+import peru.edu.uls.ucos.operacionesrest.cuota.CuotaRequest;
 import peru.edu.uls.ucos.operacionesrest.pago.Pago;
 import peru.edu.uls.ucos.operacionesrest.pago.PagoRepository;
+import peru.edu.uls.ucos.operacionesrest.pago.PagoRequest;
 import peru.edu.uls.ucos.operacionesrest.venta.EstadoVenta;
 import peru.edu.uls.ucos.operacionesrest.venta.Venta;
 import peru.edu.uls.ucos.operacionesrest.venta.VentaRepository;
@@ -50,6 +53,9 @@ class PlanPagoCuotaPagoIntegrationTest {
 
     @Autowired
     private PlanPagoRepository planPagoRepository;
+
+    @Autowired
+    private CuotaRepository cuotaRepository;
 
     @Autowired
     private PagoRepository pagoRepository;
@@ -165,13 +171,83 @@ class PlanPagoCuotaPagoIntegrationTest {
                 .allSatisfy(persistedCuota -> assertThat(persistedCuota.getPlanPago().getId()).isEqualTo(planPagoId));
     }
 
+    @Test
+    @DisplayName("Una cuota marca la venta al contado sin crear plan, cuotas ni pagos")
+    void unaCuotaMarcaVentaPagadaAlContado() throws Exception {
+        Venta venta = crearVenta();
+        long planesAntes = planPagoRepository.count();
+        long cuotasAntes = cuotaRepository.count();
+        long pagosAntes = pagoRepository.count();
+        PlanPagoRequest request = new PlanPagoRequest("CUOTAS", 1, venta.getId(), List.of());
+
+        mockMvc.perform(post("/api/planes-pago")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        ventaRepository.flush();
+        assertThat(ventaRepository.findById(venta.getId()).orElseThrow().getEstado())
+                .isEqualTo(EstadoVenta.PGOCNTDO);
+        assertThat(planPagoRepository.count()).isEqualTo(planesAntes);
+        assertThat(cuotaRepository.count()).isEqualTo(cuotasAntes);
+        assertThat(pagoRepository.count()).isEqualTo(pagosAntes);
+    }
+
+    @Test
+    @DisplayName("No permite crear plan, cuota ni pago para una venta pagada al contado")
+    void noGeneraPlanCuotaNiPagoParaVentaPagadaAlContado() throws Exception {
+        Venta venta = crearVenta(EstadoVenta.PGOCNTDO);
+        PlanPagoRequest planRequest = new PlanPagoRequest("CUOTAS", 2, venta.getId(), List.of());
+
+        mockMvc.perform(post("/api/planes-pago")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(planRequest)))
+                .andExpect(status().isBadRequest());
+        assertThat(planPagoRepository.existsByVentaId(venta.getId())).isFalse();
+
+        PlanPago planPagoExistente = new PlanPago();
+        planPagoExistente.setTipoPago("CUOTAS");
+        planPagoExistente.setCantCuotas(2);
+        planPagoExistente.setVenta(venta);
+        planPagoRepository.saveAndFlush(planPagoExistente);
+        long cuotasAntes = cuotaRepository.count();
+        CuotaRequest cuotaRequest = new CuotaRequest(
+                1, 50.0, LocalDateTime.now().plusMonths(1), "PENDIENTE", planPagoExistente.getId());
+
+        mockMvc.perform(post("/api/cuotas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cuotaRequest)))
+                .andExpect(status().isBadRequest());
+        assertThat(cuotaRepository.count()).isEqualTo(cuotasAntes);
+
+        Cuota cuotaExistente = new Cuota();
+        cuotaExistente.setNumeroCuota(1);
+        cuotaExistente.setMonto(50.0);
+        cuotaExistente.setFechaVencimiento(LocalDateTime.now().plusMonths(1));
+        cuotaExistente.setEstado("PENDIENTE");
+        planPagoExistente.agregarCuota(cuotaExistente);
+        cuotaRepository.saveAndFlush(cuotaExistente);
+        long pagosAntes = pagoRepository.count();
+        PagoRequest pagoRequest = new PagoRequest("EFECTIVO", 50.0, cuotaExistente.getId());
+
+        mockMvc.perform(post("/api/pagos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pagoRequest)))
+                .andExpect(status().isBadRequest());
+        assertThat(pagoRepository.count()).isEqualTo(pagosAntes);
+    }
+
     private Venta crearVenta() {
+        return crearVenta(EstadoVenta.PENDIENTE);
+    }
+
+    private Venta crearVenta(EstadoVenta estado) {
         Cliente cliente = clienteRepository.saveAndFlush(new Cliente(
                 "Cliente de prueba",
                 UUID.randomUUID().toString(),
                 "test@example.com"
         ));
-        Venta venta = new Venta(150.0, EstadoVenta.PENDIENTE, cliente);
+        Venta venta = new Venta(150.0, estado, cliente);
         venta.setFecha(LocalDateTime.now());
         return ventaRepository.saveAndFlush(venta);
     }

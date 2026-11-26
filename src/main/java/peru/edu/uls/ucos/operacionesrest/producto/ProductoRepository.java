@@ -25,4 +25,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     // Consulta JPQL: Obtener productos que alguna vez fueron abastecidos por un proveedor específico
     @Query("SELECT DISTINCT p FROM Producto p JOIN p.detallesCompra dc JOIN dc.compra c WHERE c.proveedor.id = :proveedorId")
     List<Producto> findProductosAbastecidosPorProveedor(@Param("proveedorId") Long proveedorId);
+
+    // Obtener todos los productos que nos ha vendido un proveedor específico
+    @Query("SELECT DISTINCT p FROM Producto p JOIN DetalleCompra dc ON p.id = dc.producto.id JOIN Compra c ON dc.compra.id = c.id WHERE c.proveedor.id = :proveedorId")
+    List<Producto> findProductosByProveedorId(@Param("proveedorId") Long proveedorId);
 }

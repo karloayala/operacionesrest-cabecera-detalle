@@ -9,12 +9,15 @@ import peru.edu.uls.ucos.operacionesrest.excepciones.RecursoNoEncontradoExceptio
 import peru.edu.uls.ucos.operacionesrest.pedido.EstadoPedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.Pedido;
 import peru.edu.uls.ucos.operacionesrest.pedido.PedidoRepository;
+import peru.edu.uls.ucos.operacionesrest.producto.ProductoRepository;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalle;
 import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleMapper;
+import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import peru.edu.uls.ucos.operacionesrest.ventadetalle.VentaDetalleService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class VentaService {
@@ -25,18 +28,26 @@ public class VentaService {
     private final ClienteRepository clienteRepository;
     private final PedidoRepository pedidoRepository;
     private final VentaDetalleMapper ventaDetalleMapper;
+    private final ProductoRepository productoRepository;
+
+    // Candado global para evitar que hilos simultáneos rompan el stock
+    private final Lock lock = new ReentrantLock();
 
     public VentaService(VentaRepository ventaRepository,
                        VentaMapper ventaMapper,
                        ClienteRepository clienteRepository,
                        PedidoRepository pedidoRepository,
-                       VentaDetalleMapper ventaDetalleMapper, VentaDetalleService ventaDetalleService) {
+                       VentaDetalleMapper ventaDetalleMapper, 
+                       VentaDetalleService ventaDetalleService,
+                       ProductoRepository productoRepository)
+        {
         this.ventaRepository = ventaRepository;
         this.ventaMapper = ventaMapper;
         this.clienteRepository = clienteRepository;
         this.pedidoRepository = pedidoRepository;
         this.ventaDetalleMapper = ventaDetalleMapper;
         this.ventaDetalleService = ventaDetalleService;
+        this.productoRepository = productoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -48,51 +59,55 @@ public class VentaService {
 
     @Transactional
     public VentaResponse confirmarPedido(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Pedido no encontrado con ID: " + pedidoId));
+        lock.lock(); 
+        try {
+            Pedido pedido = pedidoRepository.findById(pedidoId)
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "Pedido no encontrado con ID: " + pedidoId));
 
-        if (pedido.getVenta() != null) {
-            throw new RecursoDuplicadoException("El pedido ya fue confirmado con una venta.");
-        }
+            if (pedido.getVenta() != null) {
+                throw new RecursoDuplicadoException("El pedido ya fue confirmado con una venta.");
+            }
 
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new IllegalArgumentException("Solo se pueden confirmar pedidos pendientes.");
-        }
+            if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+                throw new IllegalArgumentException("Solo se pueden confirmar pedidos pendientes.");
+            }
 
-        Venta venta = new Venta(
-                pedido.getTotal(),
-                EstadoVenta.CONFIRMADA,
-                pedido.getCliente()
-        );
-
-        venta.setFecha(LocalDateTime.now());
-        venta.setPedido(pedido);
-
-        for (DetallePedido detallePedido : pedido.getDetalles()) {
-
-            VentaDetalle detalleVenta = ventaDetalleMapper.aEntidad(
-                    venta,
-                    detallePedido.getProducto(),
-                    detallePedido.getCantidad(),
-                    detallePedido.getPrecioUnitario()
+            Venta venta = new Venta(
+                    pedido.getTotal(),
+                    EstadoVenta.CONFIRMADA,
+                    pedido.getCliente()
             );
 
-            venta.agregarDetalle(detalleVenta);
-            ventaDetalleService.reducirStock(detalleVenta.getProducto(),detalleVenta.getCantidad());
+            venta.setFecha(LocalDateTime.now());
+            venta.setPedido(pedido);
+
+            for (DetallePedido detallePedido : pedido.getDetalles()) {
+                VentaDetalle detalleVenta = ventaDetalleMapper.aEntidad(
+                        venta,
+                        detallePedido.getProducto(),
+                        detallePedido.getCantidad(),
+                        detallePedido.getPrecioUnitario()
+                );
+
+                venta.agregarDetalle(detalleVenta);
+                ventaDetalleService.reducirStock(detalleVenta.getProducto(), detalleVenta.getCantidad());
+            }
+
+            pedido.setVenta(venta);
+            pedido.setEstado(EstadoPedido.CONFIRMADO);
+
+            Venta ventaGuardada = ventaRepository.save(venta);
+            return ventaMapper.aRespuesta(ventaGuardada);
+        } finally {
+            lock.unlock(); 
         }
-
-        pedido.setVenta(venta);
-        pedido.setEstado(EstadoPedido.CONFIRMADO);
-
-        Venta ventaGuardada = ventaRepository.save(venta);
-
-        return ventaMapper.aRespuesta(ventaGuardada);
     }
 
     @Transactional(readOnly = true)
     public List<VentaResponse> consultarPorEstado(String estado) {
-        return ventaRepository.findByEstadoIgnoreCase(estado)
+        EstadoVenta estadoEnum = EstadoVenta.valueOf(estado.toUpperCase());
+        return ventaRepository.findByEstado(estadoEnum)
                 .stream()
                 .map(ventaMapper::aRespuesta)
                 .toList();
@@ -103,7 +118,18 @@ public class VentaService {
         if (!clienteRepository.existsById(clienteId)) {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + clienteId);
         }
-        return ventaRepository.findByClienteId(clienteId)
+        return ventaRepository.buscarPorClienteId(clienteId)
+                .stream()
+                .map(ventaMapper::aRespuesta)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<VentaResponse> consultarPorProducto(Long productoId) {
+        if (!productoRepository.existsById(productoId)) {
+            throw new RecursoNoEncontradoException("Producto no encontrado con ID: " + productoId);
+        }
+        return ventaRepository.buscarPorProducto(productoId)
                 .stream()
                 .map(ventaMapper::aRespuesta)
                 .toList();
