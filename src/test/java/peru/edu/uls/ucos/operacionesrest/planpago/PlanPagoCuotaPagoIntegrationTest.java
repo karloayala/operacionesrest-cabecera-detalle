@@ -187,7 +187,7 @@ class PlanPagoCuotaPagoIntegrationTest {
 
         ventaRepository.flush();
         assertThat(ventaRepository.findById(venta.getId()).orElseThrow().getEstado())
-                .isEqualTo(EstadoVenta.PAGADO_AL_CONTADO);
+                .isEqualTo(EstadoVenta.PGOCNTDO);
         assertThat(planPagoRepository.count()).isEqualTo(planesAntes);
         assertThat(cuotaRepository.count()).isEqualTo(cuotasAntes);
         assertThat(pagoRepository.count()).isEqualTo(pagosAntes);
@@ -196,7 +196,7 @@ class PlanPagoCuotaPagoIntegrationTest {
     @Test
     @DisplayName("No permite crear plan, cuota ni pago para una venta pagada al contado")
     void noGeneraPlanCuotaNiPagoParaVentaPagadaAlContado() throws Exception {
-        Venta venta = crearVenta(EstadoVenta.PAGADO_AL_CONTADO);
+        Venta venta = crearVenta(EstadoVenta.PGOCNTDO);
         PlanPagoRequest planRequest = new PlanPagoRequest("CUOTAS", 2, venta.getId(), List.of());
 
         mockMvc.perform(post("/api/planes-pago")

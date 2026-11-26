@@ -106,7 +106,7 @@ public class PlanPagoService {
     if (planPagoRepository.existsByVentaId(venta.getId())) {
         throw new RecursoDuplicadoException("La venta ya tiene un plan de pago.");
     }
-    venta.setEstado(EstadoVenta.PAGADO_AL_CONTADO);
+    venta.setEstado(EstadoVenta.PGOCNTDO);
     ventaRepository.save(venta);
 }
 }

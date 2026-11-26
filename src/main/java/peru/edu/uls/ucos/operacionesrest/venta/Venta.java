@@ -66,7 +66,7 @@ public class Venta {
 
     public EstadoVenta getEstado() { return estado; }
     public void setEstado(EstadoVenta estado) { this.estado = estado; }
-    public boolean esPagadoAlContado() { return estado == EstadoVenta.PPGOCNTDO; }
+    public boolean esPagadoAlContado() { return estado == EstadoVenta.PGOCNTDO; }
 
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
